@@ -10,5 +10,7 @@ logging:
   tensorboard: true
   wandb: false             # W&B API key is read from the WANDB_API_KEY env var
 
+device: auto               # auto | cpu | cuda; the resolved value is saved per run
+
 torch:
   deterministic: false     # true = bit-reproducible GPU runs, slower
