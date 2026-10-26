@@ -11,7 +11,8 @@ Procedure (every step is driven by ``configs/scenarios/lust.yaml``):
    largest connected component is kept.
 3. Load LuST's static programs (``tll.static.xml``) as the only programs of the
    network (fixed-time baseline) and move LuST's original actuated programs to
-   a separate additional file (actuated baseline). Keeping both in the network
+   a separate additional file (actuated baseline; their green phases get
+   SUMO's default 5-50 s range, which LuST omits). Keeping both in the network
    crashes SUMO under SUMO-RL, which rewrites the first program of each
    traffic light (the actuated one) while the static one is active.
 4. Cut the original LuST routes to the sub-network with SUMO's ``cutRoutes.py``,
@@ -39,6 +40,7 @@ import sumolib
 from trafficmarl.scenarios.demand import rate_multiplier
 from trafficmarl.scenarios.spec import SPLITS, Manifest, output_dir, route_file_name, write_sumocfg
 from trafficmarl.scenarios.synthetic import profile_seed
+from trafficmarl.scenarios.tls import ACTUATED_FILE, split_tls_programs
 from trafficmarl.utils import paths, sumo
 from trafficmarl.utils.logging_utils import get_logger
 
@@ -108,26 +110,6 @@ def crop_network(
         sumo.run(cmd)
 
 
-def split_tls_programs(net_file: Path, actuated_out: Path) -> int:
-    """Keep only static programs in ``net_file``; write actuated ones to ``actuated_out``.
-
-    Returns the number of actuated programs moved. Connections reference a
-    traffic light by id and link index only, so removing alternative programs
-    leaves the network valid.
-    """
-    tree = ET.parse(net_file)
-    root = tree.getroot()
-    actuated = [tl for tl in root.findall("tlLogic") if tl.get("type") != "static"]
-    for tl in actuated:
-        root.remove(tl)
-    tree.write(net_file, encoding="UTF-8", xml_declaration=True)
-    additional = ET.Element("additional")
-    additional.extend(actuated)
-    ET.indent(additional, space="    ")
-    ET.ElementTree(additional).write(actuated_out, encoding="UTF-8", xml_declaration=True)
-    return len(actuated)
-
-
 def cut_routes(crop_net: Path, full_net: Path, route_files: list[Path], out: Path) -> None:
     cmd = [*sumo.tool("route/cutRoutes.py"), crop_net, *route_files]
     cmd += ["--orig-net", full_net, "--routes-output", out]
@@ -171,11 +153,10 @@ def scaled_window(
 
 
 def write_vehicles(vehicles: list[ET.Element], path: Path, comment: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     root = ET.Element("routes")
     root.extend(vehicles)
     ET.indent(root, space="    ")
-    with path.open("wb") as fh:
+    with paths.open_output(path) as fh:
         fh.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
         fh.write(f"<!-- {comment} -->\n".encode())
         ET.ElementTree(root).write(fh, encoding="utf-8")
@@ -248,8 +229,7 @@ def build(scenario_cfg: dict[str, Any]) -> Manifest:
     selected, keep, border = select_crop(full_net, crop_cfg)
     net_file = f"{name}.net.xml"
     crop_network(full_net_path, lust_dir / src["tls_static_file"], keep, border, root / net_file)
-    actuated_file = "tls_actuated.add.xml"
-    n_actuated = split_tls_programs(root / net_file, root / actuated_file)
+    n_actuated = split_tls_programs(root / net_file, root / ACTUATED_FILE)
     crop = sumolib.net.readNet(str(root / net_file), withPrograms=True)
     tls_ids = sorted(tl.getID() for tl in crop.getTrafficLights())
 
@@ -265,6 +245,9 @@ def build(scenario_cfg: dict[str, Any]) -> Manifest:
         begin=0,
         duration=int(dem["duration"]),
         additional_files=[vtypes],
+        actuated_file=ACTUATED_FILE,
+        sumo_version=sumo.version(),
+        robustness_only_profiles=list(dem.get("robustness_only", [])),
         notes={
             "source": "LuST scenario (Codeca et al., 2017), MIT license",
             "crop_center_lonlat": [crop_cfg["center_lon"], crop_cfg["center_lat"]],
@@ -273,7 +256,6 @@ def build(scenario_cfg: dict[str, Any]) -> Manifest:
             "tls_dropped_disconnected": sorted(set(selected) - set(tls_ids)),
             "tls_unset_on_border": border,
             "edges": len(crop.getEdges()),
-            "actuated_programs_file": actuated_file,
             "actuated_programs": n_actuated,
             "route_source": src["route_files"],
             "windows_s": dem["windows"],

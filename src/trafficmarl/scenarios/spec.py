@@ -44,7 +44,8 @@ def output_dir(scenario_cfg: dict[str, Any]) -> Path:
 
 
 def route_file_name(profile: str, split: str, index: int) -> str:
-    return f"routes/{profile}_{split}_{index}.rou.xml"
+    """Route files are gzip-compressed (read natively by SUMO) to keep the repository small."""
+    return f"routes/{profile}_{split}_{index}.rou.xml.gz"
 
 
 @dataclass
@@ -61,6 +62,10 @@ class Manifest:
     vehicles: dict[str, int] = field(default_factory=dict)
     additional_files: list[str] = field(default_factory=list)
     sumocfg: str | None = None
+    actuated_file: str | None = None  # additional file switching every TLS to actuated
+    sumo_version: str = ""
+    # Demand levels used only by the robustness study, never in the main comparison tables.
+    robustness_only_profiles: list[str] = field(default_factory=list)
     notes: dict[str, Any] = field(default_factory=dict)
 
     def path(self, relative: str) -> Path:

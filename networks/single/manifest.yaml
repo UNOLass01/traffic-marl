@@ -1,0 +1,79 @@
+name: single
+net_file: single.net.xml
+tls_ids:
+- A0
+begin: 0
+duration: 3600
+routes:
+  low:
+    train:
+    - routes/low_train_0.rou.xml.gz
+    - routes/low_train_1.rou.xml.gz
+    - routes/low_train_2.rou.xml.gz
+    eval:
+    - routes/low_eval_0.rou.xml.gz
+    - routes/low_eval_1.rou.xml.gz
+  medium:
+    train:
+    - routes/medium_train_0.rou.xml.gz
+    - routes/medium_train_1.rou.xml.gz
+    - routes/medium_train_2.rou.xml.gz
+    eval:
+    - routes/medium_eval_0.rou.xml.gz
+    - routes/medium_eval_1.rou.xml.gz
+  high:
+    train:
+    - routes/high_train_0.rou.xml.gz
+    - routes/high_train_1.rou.xml.gz
+    - routes/high_train_2.rou.xml.gz
+    eval:
+    - routes/high_eval_0.rou.xml.gz
+    - routes/high_eval_1.rou.xml.gz
+  peak:
+    train:
+    - routes/peak_train_0.rou.xml.gz
+    - routes/peak_train_1.rou.xml.gz
+    - routes/peak_train_2.rou.xml.gz
+    eval:
+    - routes/peak_eval_0.rou.xml.gz
+    - routes/peak_eval_1.rou.xml.gz
+  saturated:
+    train:
+    - routes/saturated_train_0.rou.xml.gz
+    - routes/saturated_train_1.rou.xml.gz
+    - routes/saturated_train_2.rou.xml.gz
+    eval:
+    - routes/saturated_eval_0.rou.xml.gz
+    - routes/saturated_eval_1.rou.xml.gz
+vehicles:
+  routes/low_train_0.rou.xml.gz: 1589
+  routes/low_train_1.rou.xml.gz: 1627
+  routes/low_train_2.rou.xml.gz: 1556
+  routes/low_eval_0.rou.xml.gz: 1573
+  routes/low_eval_1.rou.xml.gz: 1554
+  routes/medium_train_0.rou.xml.gz: 3088
+  routes/medium_train_1.rou.xml.gz: 3314
+  routes/medium_train_2.rou.xml.gz: 3261
+  routes/medium_eval_0.rou.xml.gz: 3099
+  routes/medium_eval_1.rou.xml.gz: 3233
+  routes/high_train_0.rou.xml.gz: 4812
+  routes/high_train_1.rou.xml.gz: 4804
+  routes/high_train_2.rou.xml.gz: 4782
+  routes/high_eval_0.rou.xml.gz: 4845
+  routes/high_eval_1.rou.xml.gz: 4778
+  routes/peak_train_0.rou.xml.gz: 3751
+  routes/peak_train_1.rou.xml.gz: 3825
+  routes/peak_train_2.rou.xml.gz: 3903
+  routes/peak_eval_0.rou.xml.gz: 3953
+  routes/peak_eval_1.rou.xml.gz: 3783
+  routes/saturated_train_0.rou.xml.gz: 6448
+  routes/saturated_train_1.rou.xml.gz: 6478
+  routes/saturated_train_2.rou.xml.gz: 6394
+  routes/saturated_eval_0.rou.xml.gz: 6464
+  routes/saturated_eval_1.rou.xml.gz: 6195
+additional_files: []
+sumocfg: single.sumocfg
+actuated_file: tls_actuated.add.xml
+sumo_version: 1.28.0
+robustness_only_profiles: []
+notes: {}

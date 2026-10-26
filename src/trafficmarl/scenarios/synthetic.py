@@ -16,6 +16,7 @@ import sumolib
 
 from trafficmarl.scenarios import demand
 from trafficmarl.scenarios.spec import SPLITS, Manifest, output_dir, route_file_name, write_sumocfg
+from trafficmarl.scenarios.tls import ACTUATED_FILE, write_actuated_from_net
 from trafficmarl.utils import sumo
 from trafficmarl.utils.logging_utils import get_logger
 
@@ -62,6 +63,7 @@ def build(scenario_cfg: dict[str, Any]) -> Manifest:
     root.mkdir(parents=True, exist_ok=True)
     net_file = f"{name}.net.xml"
     build_network(scenario_cfg["network"], root / net_file)
+    write_actuated_from_net(root / net_file, root / ACTUATED_FILE)
     net = sumolib.net.readNet(str(root / net_file), withPrograms=True)
 
     dem = scenario_cfg["demand"]
@@ -72,6 +74,9 @@ def build(scenario_cfg: dict[str, Any]) -> Manifest:
         tls_ids=sorted(tl.getID() for tl in net.getTrafficLights()),
         begin=0,
         duration=int(dem["duration"]),
+        actuated_file=ACTUATED_FILE,
+        sumo_version=sumo.version(),
+        robustness_only_profiles=list(dem.get("robustness_only", [])),
     )
     for profile, multipliers in dem["profiles"].items():
         for split in SPLITS:

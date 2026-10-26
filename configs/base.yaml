@@ -10,6 +10,16 @@ logging:
   tensorboard: true
   wandb: false             # W&B API key is read from the WANDB_API_KEY env var
 
+# Simulation settings shared by every method (baselines and RL alike), so that
+# all methods are compared under identical conditions (docs/decisions.md D14).
+simulation:
+  time_to_teleport: 300    # s; SUMO default. Teleports are counted and reported
+  drain_time: 1800         # s simulated after the last insertion (fixed episode length)
+  gridlock_window: 600     # s without any arrival while vehicles remain = gridlock
+
+metrics:
+  teleport_flag_threshold: 0.01   # runs above this teleport rate are flagged
+
 device: auto               # auto | cpu | cuda; the resolved value is saved per run
 
 torch:

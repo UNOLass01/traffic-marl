@@ -89,36 +89,25 @@ def _cmd_scenarios_build(args: argparse.Namespace) -> int:
 
 
 def _cmd_scenarios_validate(args: argparse.Namespace) -> int:
-    """Simulate every route file headless and check teleports; write a CSV report."""
+    """Simulate every route file headless (parallel, resumable); CSV + log report."""
     import pandas as pd
 
-    from trafficmarl.scenarios.spec import Manifest, load_scenario_config, output_dir
-    from trafficmarl.scenarios.validate import validate
+    from trafficmarl.scenarios.validate import plan_jobs, read_results, run_validation
+    from trafficmarl.utils.logging_utils import setup_logging
 
-    rows = []
-    for name in _scenario_names(args.names):
-        cfg = load_scenario_config(name)
-        manifest = Manifest.load(output_dir(cfg))
-        rows += validate(manifest, **cfg["validation"])
-    table = pd.DataFrame(rows)
-    report = paths.RESULTS_DIR / "scenario_validation" / "validation.csv"
-    report.parent.mkdir(parents=True, exist_ok=True)
-    table.to_csv(report, index=False)
+    setup_logging("INFO")
+    jobs = plan_jobs(_scenario_names(args.names), args.profiles)
+    report = paths.resolve(args.output)
+    run_validation(jobs, report, workers=args.workers, fresh=args.fresh)
+    table = pd.DataFrame(read_results(report, jobs))
     columns = [
-        "scenario",
-        "profile",
-        "split",
-        "inserted",
-        "arrived",
-        "teleports",
-        "mean_waiting_time",
-        "mean_travel_time",
-        "running_at_end",
-        "passed",
-    ]
+        "scenario", "profile", "split", "controller", "inserted", "arrived", "teleports",
+        "teleport_ratio", "mean_waiting_time", "drained_without_teleport", "passed",
+    ]  # fmt: skip
+    table = table.sort_values(["scenario", "profile", "split", "route_file"])
     print(table[columns].to_string(index=False))
-    print(f"report: {report}")
-    return 0 if table["passed"].all() else 1
+    print(f"report: {report} (log: {report.with_suffix('.log')})")
+    return 0 if (table["passed"] == "True").all() else 1
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -144,13 +133,23 @@ def build_parser() -> argparse.ArgumentParser:
 
     scenarios = sub.add_parser("scenarios", help="build and validate SUMO scenarios")
     scen_sub = scenarios.add_subparsers(dest="scenarios_command", metavar="<action>", required=True)
-    for action, func, help_text in (
-        ("build", _cmd_scenarios_build, "generate networks and route files"),
-        ("validate", _cmd_scenarios_validate, "run each route file headless and check teleports"),
-    ):
-        p = scen_sub.add_parser(action, help=help_text)
-        p.add_argument("names", nargs="+", help="scenario names (configs/scenarios/) or 'all'")
-        p.set_defaults(func=func)
+    build = scen_sub.add_parser("build", help="generate networks and route files")
+    build.add_argument("names", nargs="+", help="scenario names (configs/scenarios/) or 'all'")
+    build.set_defaults(func=_cmd_scenarios_build)
+
+    validate = scen_sub.add_parser(
+        "validate", help="run each route file headless (parallel, resumes from the report)"
+    )
+    validate.add_argument("names", nargs="+", help="scenario names (configs/scenarios/) or 'all'")
+    validate.add_argument("--profiles", nargs="+", help="only these demand profiles")
+    validate.add_argument(
+        "--workers", type=int, default=None, help="parallel SUMO processes (default: CPUs - 1)"
+    )
+    validate.add_argument("--fresh", action="store_true", help="discard previous results")
+    validate.add_argument(
+        "--output", default="results/scenario_validation/validation.csv", help="CSV report"
+    )
+    validate.set_defaults(func=_cmd_scenarios_validate)
     return parser
 
 

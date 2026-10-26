@@ -1,0 +1,213 @@
+# Decisions log
+
+Scientific and engineering decisions agreed by the team. Entries are append-only: a decision
+that changes is superseded by a new entry that references the old one, never edited in place.
+Each entry states the decision, the reason, and its impact on the code and the results.
+
+---
+
+### D1 — 2026-10-26 — Frameworks for IPPO and MAPPO
+- **Decision:** IPPO and MAPPO use RLlib 2.59 (new API stack: RLModule / Learner / env runners).
+  MAPPO is PPO with a custom centralized-critic RLModule. The centralized single-agent baseline
+  uses Stable-Baselines3 PPO with a MultiDiscrete joint action.
+- **Reason:** RLlib is the project's primary MARL framework and handles multi-agent policies and
+  PettingZoo environments natively; SB3 is simpler for a single agent with a factored action.
+- **Impact:** `src/trafficmarl/agents/` wraps RLlib; `src/trafficmarl/baselines/` wraps SB3.
+
+### D2 — 2026-10-26 — In-house QMIX and MADDPG
+- **Decision:** implement QMIX (Rashid et al., 2018) and MADDPG (Lowe et al., 2017) in PyTorch in
+  `src/trafficmarl/agents/`, following the original papers and citing them in docstrings. Each is
+  validated on a small known cooperative task (PettingZoo MPE or a matrix game) by a test before
+  any traffic experiment. All hyperparameters live in YAML configs.
+- **Reason:** RLlib 2.59 no longer ships QMIX or MADDPG; EPyMARL is script/sacred-driven and does
+  not fit the project's config and results layout; BenchMARL would add a second training stack
+  tightly coupled to specific torch versions.
+- **Impact:** extra implementation and testing effort in Phase 7; identical env, metrics and
+  results layout for every method.
+
+### D3 — 2026-10-26 — Two fixed-time baselines
+- **Decision:** report SUMO's default program and Webster-tuned timings as two separate
+  baselines.
+- **Reason:** SUMO's default program is an untuned reference; Webster timings are what a traffic
+  engineer would deploy and are the fair classical comparison.
+- **Impact:** Phase 4 implements Webster's formula from the scenario demand.
+
+### D4 — 2026-10-26 — Parameter sharing and heterogeneous intersections
+- **Decision:** IPPO uses one policy shared by all agents by default; per-agent policies are an
+  ablation. Heterogeneous intersections (LuST) are handled by padding observations and actions to
+  a common size, masking invalid actions, and adding an agent-id or intersection-type feature to
+  the observation.
+- **Reason:** sharing scales to large networks and multiplies the experience per parameter; the
+  padding/masking scheme keeps a single policy usable on intersections with 2 to 4 phases.
+- **Impact:** results tables state whether parameter sharing is used; the env factory (Phase 2)
+  implements padding, masking and the id feature.
+
+### D5 — 2026-10-26 — Language
+- **Decision:** the report and the `docs/` material written for the jury are in French. Code,
+  comments, README, commit messages and this engineering log are in English.
+- **Reason:** the course is taught in French; English keeps the code base conventional.
+- **Impact:** `docs/scenarios.md`, `docs/mdp.md`, `docs/results.md` are written in French.
+
+### D6 — 2026-10-26 — Compute device
+- **Decision:** `device: auto | cpu | cuda` in YAML (default `auto`); the resolved device is
+  recorded in each run's saved config. CPU and GPU are benchmarked once in Phase 5 and the faster
+  one is kept for training (result to be added as a new entry).
+- **Reason:** the networks are small MLPs and SUMO is the bottleneck, so the GPU may not help.
+- **Impact:** `trafficmarl.utils.device.resolve_device`. Hardware: RTX 4060 Laptop (8 GB),
+  torch 2.14.1+cu130.
+
+### D7 — 2026-10-26 — Synthetic scenarios
+- **Decision:** `netgenerate` grids with 200 m blocks, 2 lanes plus a 100 m dedicated left-turn
+  lane per approach, 50 km/h, and SUMO's static 90 s program with 4 green phases. Demand: Poisson
+  arrivals at the fringe entries with turning probabilities 0.70 / 0.15 / 0.15 (straight / right /
+  left); the corridor's arterial ends carry 3x the side-street demand. Base rates (`medium`):
+  single 800, corridor 320, grid3x3 650, grid5x5 600 veh/h per entry. 3 train + 2 eval route
+  files per profile, with disjoint seeds.
+- **Reason:** dedicated left lanes give the standard 4-phase action space (2 phases otherwise);
+  turning probabilities avoid saturating the left lanes first; rates are calibrated so that `high`
+  (x1.5) sits just below fixed-time saturation (sweep in `docs/scenarios.md`).
+- **Impact:** all synthetic results; reproducible with `networks/build_all.sh`.
+
+### D8 — 2026-10-26 — LuST crop
+- **Decision:** traffic lights within ±600 m of Place d'Armes (18 selected, 14 kept: 4 form a
+  cluster disconnected from the rest inside the square). LuST dynamic-user-equilibrium routes for
+  static programs plus transit traffic, no buses. Train window 07:00-08:00, eval 08:00-09:00;
+  profiles scale the real demand (0.6 / 1.0 / 1.3 / peak ramp). The network holds only LuST's
+  static programs; the actuated programs are in `tls_actuated.add.xml`.
+- **Reason:** 10-20 intersections keep training tractable; LuST's shortest-path (DUA) routes
+  gridlock the crop even at 0.6x demand; keeping two programs per traffic light in the network
+  crashes SUMO under SUMO-RL.
+- **Impact:** realistic scenario with heterogeneous intersections (2-4 phases); procedure in
+  `docs/scenarios.md`, map in `docs/figures/lust_crop.png`.
+
+### D9 — 2026-10-26 — Generated SUMO files are committed (supersedes the Phase 1 choice of git-ignoring them)
+- **Decision:** networks, route files, sumocfg, additional files and manifests of every scenario
+  are committed. Route files are gzip-compressed (`.rou.xml.gz`, read natively by SUMO) with a
+  fixed gzip header so rebuilds are byte-identical. The SUMO version used is recorded in each
+  manifest and in `docs/scenarios.md`. `networks/build_all.sh` remains the way to regenerate them.
+- **Reason:** every teammate must run identical scenarios regardless of their SUMO version
+  (`netgenerate`, `netconvert` and `cutRoutes.py` outputs can change between versions).
+  Uncompressed, the files total about 190 MB (mostly synthetic route files); compressed, 11.7 MB.
+- **Impact:** the repository carries ~12 MB of scenario data; rebuilding with a different SUMO
+  version shows up as a git diff.
+
+### D10 — 2026-10-26 — Saturated demand level
+- **Decision:** every scenario gets a `saturated` profile at 2x the base demand (beyond
+  fixed-time saturation), with train and eval route files. It is validated under the **actuated**
+  baseline: teleports are reported but not thresholded, and a second run with teleporting
+  disabled must see every vehicle arrive within 4 h (no permanent gridlock).
+- **Reason:** the robustness study needs a demand level where fixed-time control breaks down but
+  the network still drains under a reasonable adaptive controller.
+- **Impact:** an actuated program file (`tls_actuated.add.xml`) is generated for every scenario
+  (green phases get SUMO's default 5-50 s range, which LuST's own actuated programs lack).
+
+### D11 — 2026-10-26 — Relative metrics for cross-scenario comparisons
+- **Decision:** comparisons across scenarios and the scalability study use the **improvement
+  relative to the fixed-time (Webster) baseline on the same scenario and demand** (e.g.
+  `(W_webster - W_method) / W_webster` for the mean waiting time), not raw values.
+- **Reason:** raw waiting times depend on network size, route lengths and demand level (a vehicle
+  crosses more intersections in grid5x5 than in single), so they are not comparable across
+  scenarios.
+- **Impact:** analysis scripts compute relative improvements per (scenario, demand, seed); raw
+  values remain in the per-scenario tables.
+
+### D12 — 2026-10-26 — Observation range on each approach
+- **Decision:** lane features (queue, density, mean speed) cover the full approach upstream of
+  the stop line, across consecutive edges, capped at a fixed configurable distance (default
+  200 m). Queue and density are normalized by the number of vehicles that fit in that distance,
+  speed by the speed limit.
+- **Reason:** SUMO-RL observes only the last lane segment (100 m in the synthetic networks
+  because of the left-turn split, shorter on many LuST approaches), which truncates long queues;
+  a fixed cap keeps the observation size fixed and its normalization identical across
+  intersections and scenarios.
+- **Impact:** custom observation function in Phase 2; documented in `docs/mdp.md`.
+
+### D13 — 2026-10-26 — Phase-duration constraints enforced by action masking
+- **Findings:** in SUMO-RL 1.4.5, (1) `max_green` is stored but never enforced, so a phase can
+  stay green indefinitely and starve the other movements; (2) during the minimum green (and
+  yellow), a request to change phase is silently ignored and the current phase is kept, so the
+  agent is credited with an action that never happened.
+- **Decision:** constraints are enforced by **action masking** in our own wrapper / traffic-signal
+  subclass (no fork of SUMO-RL). While the minimum green has not elapsed, only "keep the current
+  phase" is valid; once the maximum green is reached, "keep the current phase" is masked out.
+  The same mask also hides the padded (non-existent) phases of heterogeneous LuST intersections.
+  Every action reaching the simulator is therefore valid and executed; none is silently ignored.
+  The mask is exposed in a form usable by RLlib PPO, SB3 (MaskablePPO from sb3-contrib if
+  needed), QMIX and MADDPG. Masked steps and forced switches are counted in the metrics.
+- **Reason:** silent no-ops corrupt the credit assignment of every learning method, and an
+  unbounded green would let agents starve side streets.
+- **Impact:** min/max green and yellow are identical for RL agents and baselines (fair
+  comparison); tests check on every scenario that max green is never exceeded and min green is
+  never violated; constraint activity is reported with the results.
+
+### D14 — 2026-10-26 — Identical simulation conditions for every method
+- **Decision:** all baselines and all RL methods, in training and in evaluation, run with the
+  same simulation settings (`simulation` in `configs/base.yaml`):
+  - teleporting after **300 s** of immobility (SUMO's default; SUMO-RL's default of no teleport
+    is overridden);
+  - a **fixed episode length**: the scenario's 1 h of vehicle insertions plus a fixed drain
+    period (default **1800 s**);
+  - **gridlock detection**: if no vehicle arrives for **600 s** while vehicles remain, the episode
+    ends early and is flagged as gridlocked.
+- **Reason:** a method must not benefit from a different teleport rule, a longer drain or a
+  different treatment of jams; without teleports, one bad policy can gridlock a training run
+  forever.
+- **Impact:** a single place in the config; teleports and gridlock flags are part of the metrics
+  of every run (see D17).
+
+### D16 — 2026-10-26 — Stress demand level (grid5x5 only)
+- **Decision:** grid5x5 keeps the 2.0x demand as a separate `stress` level, simulated with
+  teleporting on. It is used only by a robustness experiment (how long each method delays
+  gridlock, and its throughput) and is **excluded from the main comparison tables**
+  (`robustness_only` in the scenario config and manifest).
+- **Reason:** 2.0x gridlocks grid5x5 permanently under actuated control (D15), which makes it a
+  useful stress test but not a fair level for average-performance comparisons.
+- **Impact:** validation records its statistics without pass/fail (`report_only`); analysis
+  scripts must skip `robustness_only` profiles in the main tables.
+
+### D17 — 2026-10-26 — Teleports reported with every result
+- **Decision:** every result table reports the teleport count and teleport rate (teleports /
+  inserted vehicles) next to throughput. Runs whose teleport rate exceeds a configurable
+  threshold (`metrics.teleport_flag_threshold`, default 1 %) are flagged in tables and figures.
+- **Reason:** teleports remove jammed vehicles; a policy that causes jams could otherwise look
+  good on waiting time and throughput.
+- **Impact:** implemented in the metrics module (Phase 3) and the analysis scripts.
+
+### D15 — 2026-10-26 — Saturated level calibrated per scenario
+- **Decision:** `saturated` means "beyond fixed-time saturation, still drainable by actuated
+  control with teleporting off", confirmed on every route file of the profile (5 for synthetic
+  scenarios, 2 for LuST). Multipliers of the base demand:
+
+  | Scenario | Multiplier | Reason |
+  |---|---|---|
+  | single | 2.0 | drains on 5/5 files |
+  | corridor | 2.0 | drains on 5/5 files |
+  | grid3x3 | 1.8 | 2.0 gridlocks permanently on 2/5 files; 1.8 drains on 5/5 |
+  | grid5x5 | 1.8 | 2.0 gridlocks permanently (from t ≈ 4200 s); 1.8 drains on 5/5 |
+  | lust | 1.5 | see exception below |
+
+- **LuST exception:** every multiplier above the real demand (1.2 to 1.8 tested) deadlocks the
+  cropped network permanently once teleporting is off, while the same runs clear with teleporting
+  on (0.2-0.3 % teleports at 1.5x). The deadlocks occur inside junctions on the real geometry;
+  LuST's own `ignore-junction-blocker = 20` only removes some of them. LuST's saturated level is
+  therefore 1.5x, validated under actuated control with teleporting on (≤ 1 % teleports, every
+  vehicle arrives); the no-teleport outcome is recorded but not required (`gridlock_required:
+  false`).
+- **Reason:** the robustness study needs a level where fixed-time control breaks down but the
+  network still drains under a reasonable adaptive controller; a single multiplier cannot meet
+  this definition on every network.
+- **Impact:** `saturated` is not the same multiplier everywhere; reports state each value.
+  Validation uses early gridlock detection (no arrival for 600 s while vehicles remain).
+
+### D18 — 2026-10-26 — libsumo was not installed; pinned libsumo 1.28.0
+- **Finding:** with `LIBSUMO_AS_TRACI=1`, the `traci` package silently fell back to socket TraCI
+  because the `libsumo` Python module was missing from the environment ("Could not import
+  libsumo ... falling back to pure python traci"), although SUMO-RL printed "Using libsumo".
+- **Decision:** install and pin `libsumo==1.28.0` from PyPI (matches the installed SUMO and the
+  pinned `traci`/`sumolib`; no second SUMO binary is installed). libsumo warns that it was built
+  against a different libarrow than the installed `pyarrow` 25.0.1; we use no libsumo feature
+  that needs arrow, and SUMO-RL rollouts with Ray and pyarrow loaded run correctly.
+- **Reason:** a one-hour random rollout on grid3x3 takes 12 s with libsumo versus 365 s with
+  socket TraCI on this machine.
+- **Impact:** training throughput; libsumo allows one simulation per process, so parallel
+  simulations (validation, RLlib env runners) run in separate processes.

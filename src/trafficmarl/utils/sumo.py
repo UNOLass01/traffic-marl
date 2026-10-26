@@ -48,3 +48,9 @@ def run(cmd: Sequence[str | Path], *, cwd: str | Path | None = None) -> subproce
             f"stdout:\n{result.stdout[-2000:]}\nstderr:\n{result.stderr[-2000:]}"
         )
     return result
+
+
+def version() -> str:
+    """SUMO version string, e.g. ``1.28.0`` (recorded in every scenario manifest)."""
+    first_line = run([binary("sumo"), "--version"]).stdout.splitlines()[0]
+    return first_line.split()[-1]

@@ -54,6 +54,9 @@ Tested on Ubuntu 22.04 (WSL2) with SUMO 1.28 and Python 3.10.
    ```
 
    `pettingzoo` is pinned to 1.24.3: newer versions break `sumo-rl`.
+   `libsumo` (pinned to the SUMO version, 1.28.0) must be importable for `LIBSUMO_AS_TRACI=1` to
+   take effect; otherwise `traci` silently falls back to the much slower socket API. Its warning
+   about a pyarrow version mismatch is harmless here.
 
 3. **Third-party sources** (git-ignored, cloned into `external/`)
 
@@ -88,19 +91,20 @@ python -m trafficmarl config configs/base.yaml experiment.name=demo   # print a 
 | `grid5x5` | 25 | scalability (Manhattan-type grid) |
 | `lust` | 14 | Luxembourg city centre cropped from LuST, morning peak |
 
-Each scenario has `low`, `medium`, `high` and non-stationary `peak` demand, with separate
-train and eval route files (disjoint seeds, or disjoint time windows for LuST). SUMO files are
-generated, not versioned:
+Each scenario has `low`, `medium`, `high`, non-stationary `peak` and `saturated` (x2, robustness
+study) demand, with separate train and eval route files (disjoint seeds, or disjoint time windows
+for LuST). The generated SUMO files are committed (route files gzip-compressed, generated with
+SUMO 1.28.0) so everyone runs identical scenarios; they can be rebuilt from the configs:
 
 ```bash
-networks/build_all.sh                            # build + validate everything (~10 min)
+networks/build_all.sh                            # rebuild + validate everything (parallel)
 python -m trafficmarl scenarios build grid3x3    # one scenario
-python -m trafficmarl scenarios validate all     # report in results/scenario_validation/
+python -m trafficmarl scenarios validate all     # parallel, resumable; results/scenario_validation/
 sumo-gui -c networks/grid/grid3x3/grid3x3.sumocfg   # inspect (unset LIBSUMO_AS_TRACI first)
 ```
 
-Each built scenario has a `manifest.yaml` listing its network, route files and traffic-light
-ids. Design choices, demand calibration and the LuST cropping procedure are documented
+Each built scenario has a `manifest.yaml` listing its network, route files, traffic-light ids
+and an additional file (`tls_actuated.add.xml`) that switches every light to actuated control. Design choices, demand calibration and the LuST cropping procedure are documented
 (in French) in [docs/scenarios.md](docs/scenarios.md).
 
 ### Configuration
@@ -116,6 +120,11 @@ experiment:
 ```
 
 The fully resolved config is saved with each run in `results/<experiment>/<method>/<seed>/`.
+
+### Decisions
+
+Scientific and engineering choices are logged with their reason and impact in
+[docs/decisions.md](docs/decisions.md).
 
 ### Reproducibility
 

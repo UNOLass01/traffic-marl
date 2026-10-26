@@ -23,6 +23,8 @@ from pathlib import Path
 import numpy as np
 import sumolib
 
+from trafficmarl.utils.paths import open_output
+
 # SUMO connection directions mapped to the three turn classes used in configs;
 # 't' (turnaround) is never chosen.
 DIRECTION_CLASS = {"s": "straight", "r": "right", "R": "right", "l": "left", "L": "left"}
@@ -160,9 +162,8 @@ VTYPE_XML = (
 
 
 def write_route_file(vehicles: Sequence[Vehicle], path: str | Path, comment: str = "") -> Path:
-    """Write vehicles with explicit routes to a SUMO ``.rou.xml`` file."""
+    """Write vehicles with explicit routes to a SUMO ``.rou.xml`` (or ``.rou.xml.gz``) file."""
     path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     lines = ['<?xml version="1.0" encoding="UTF-8"?>\n']
     if comment:
         lines.append(f"<!-- {comment} -->\n")
@@ -176,5 +177,6 @@ def write_route_file(vehicles: Sequence[Vehicle], path: str | Path, comment: str
             "    </vehicle>\n"
         )
     lines.append("</routes>\n")
-    path.write_text("".join(lines), encoding="utf-8")
+    with open_output(path) as fh:
+        fh.write("".join(lines).encode("utf-8"))
     return path

@@ -37,6 +37,17 @@ scenario:
       medium: [1.0]
       high: [1.3]
       peak: [0.6, 1.0, 1.5, 1.5, 1.0, 0.6]
+      # Robustness study, beyond fixed-time saturation. Above x1.0 the cropped real
+      # network deadlocks inside junctions once teleporting is off, so LuST uses a
+      # teleport-based check instead of the drain check (docs/decisions.md D15).
+      saturated: [1.5]
   validation:
     end: 7200
     max_teleport_ratio: 0.01
+    profiles:                  # per-profile overrides
+      saturated:               # robustness level beyond fixed-time saturation
+        controller: actuated   # judged under the actuated baseline
+        end: 14400
+        max_teleport_ratio: 0.01   # teleporting on: <= 1 % teleports, all vehicles arrive
+        gridlock_check: true       # no-teleport rerun recorded...
+        gridlock_required: false   # ...but not required (junction deadlocks, D15)

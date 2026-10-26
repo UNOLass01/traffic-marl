@@ -1,0 +1,117 @@
+name: grid5x5
+net_file: grid5x5.net.xml
+tls_ids:
+- A0
+- A1
+- A2
+- A3
+- A4
+- B0
+- B1
+- B2
+- B3
+- B4
+- C0
+- C1
+- C2
+- C3
+- C4
+- D0
+- D1
+- D2
+- D3
+- D4
+- E0
+- E1
+- E2
+- E3
+- E4
+begin: 0
+duration: 3600
+routes:
+  low:
+    train:
+    - routes/low_train_0.rou.xml.gz
+    - routes/low_train_1.rou.xml.gz
+    - routes/low_train_2.rou.xml.gz
+    eval:
+    - routes/low_eval_0.rou.xml.gz
+    - routes/low_eval_1.rou.xml.gz
+  medium:
+    train:
+    - routes/medium_train_0.rou.xml.gz
+    - routes/medium_train_1.rou.xml.gz
+    - routes/medium_train_2.rou.xml.gz
+    eval:
+    - routes/medium_eval_0.rou.xml.gz
+    - routes/medium_eval_1.rou.xml.gz
+  high:
+    train:
+    - routes/high_train_0.rou.xml.gz
+    - routes/high_train_1.rou.xml.gz
+    - routes/high_train_2.rou.xml.gz
+    eval:
+    - routes/high_eval_0.rou.xml.gz
+    - routes/high_eval_1.rou.xml.gz
+  peak:
+    train:
+    - routes/peak_train_0.rou.xml.gz
+    - routes/peak_train_1.rou.xml.gz
+    - routes/peak_train_2.rou.xml.gz
+    eval:
+    - routes/peak_eval_0.rou.xml.gz
+    - routes/peak_eval_1.rou.xml.gz
+  saturated:
+    train:
+    - routes/saturated_train_0.rou.xml.gz
+    - routes/saturated_train_1.rou.xml.gz
+    - routes/saturated_train_2.rou.xml.gz
+    eval:
+    - routes/saturated_eval_0.rou.xml.gz
+    - routes/saturated_eval_1.rou.xml.gz
+  stress:
+    train:
+    - routes/stress_train_0.rou.xml.gz
+    - routes/stress_train_1.rou.xml.gz
+    - routes/stress_train_2.rou.xml.gz
+    eval:
+    - routes/stress_eval_0.rou.xml.gz
+    - routes/stress_eval_1.rou.xml.gz
+vehicles:
+  routes/low_train_0.rou.xml.gz: 5971
+  routes/low_train_1.rou.xml.gz: 6073
+  routes/low_train_2.rou.xml.gz: 6108
+  routes/low_eval_0.rou.xml.gz: 5950
+  routes/low_eval_1.rou.xml.gz: 6040
+  routes/medium_train_0.rou.xml.gz: 11941
+  routes/medium_train_1.rou.xml.gz: 11958
+  routes/medium_train_2.rou.xml.gz: 12166
+  routes/medium_eval_0.rou.xml.gz: 12027
+  routes/medium_eval_1.rou.xml.gz: 12077
+  routes/high_train_0.rou.xml.gz: 17726
+  routes/high_train_1.rou.xml.gz: 18119
+  routes/high_train_2.rou.xml.gz: 18030
+  routes/high_eval_0.rou.xml.gz: 17926
+  routes/high_eval_1.rou.xml.gz: 18015
+  routes/peak_train_0.rou.xml.gz: 14139
+  routes/peak_train_1.rou.xml.gz: 14087
+  routes/peak_train_2.rou.xml.gz: 14396
+  routes/peak_eval_0.rou.xml.gz: 14193
+  routes/peak_eval_1.rou.xml.gz: 14052
+  routes/saturated_train_0.rou.xml.gz: 21489
+  routes/saturated_train_1.rou.xml.gz: 21589
+  routes/saturated_train_2.rou.xml.gz: 21658
+  routes/saturated_eval_0.rou.xml.gz: 21408
+  routes/saturated_eval_1.rou.xml.gz: 21456
+  routes/stress_train_0.rou.xml.gz: 24026
+  routes/stress_train_1.rou.xml.gz: 24041
+  routes/stress_train_2.rou.xml.gz: 24131
+  routes/stress_eval_0.rou.xml.gz: 23783
+  routes/stress_eval_1.rou.xml.gz: 24106
+additional_files: []
+sumocfg: grid5x5.sumocfg
+actuated_file: tls_actuated.add.xml
+sumo_version: 1.28.0
+robustness_only_profiles:
+- stress
+notes: {}

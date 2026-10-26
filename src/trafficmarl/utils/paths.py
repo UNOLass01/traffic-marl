@@ -6,6 +6,8 @@ so the project works from any working directory and on any machine.
 
 from __future__ import annotations
 
+import gzip
+import io
 import os
 from pathlib import Path
 
@@ -64,3 +66,25 @@ def run_dir(experiment: str, method: str, seed: int, *, create: bool = True) -> 
     if create:
         path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def open_output(path: str | Path) -> io.BufferedIOBase:
+    """Binary writer for ``path``, gzip-compressed if it ends with ``.gz``.
+
+    The gzip header's timestamp and file name are fixed so that rebuilding a
+    scenario yields byte-identical files (no spurious git diffs).
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    raw = path.open("wb")
+    if path.suffix != ".gz":
+        return raw
+    compressed = gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0, compresslevel=9)
+    compressed.myfileobj = raw  # let close() also close the underlying file, as gzip.open does
+    return compressed
+
+
+def open_input(path: str | Path) -> io.BufferedIOBase:
+    """Binary reader for ``path``, transparently decompressing ``.gz`` files."""
+    path = Path(path)
+    return gzip.open(path, "rb") if path.suffix == ".gz" else path.open("rb")

@@ -3,8 +3,15 @@
 Ce document décrit les réseaux routiers et la demande de trafic utilisés dans toutes les
 expériences, ainsi que la procédure qui permet de les régénérer à l'identique.
 
-Tous les fichiers SUMO (`.net.xml`, `.rou.xml`, …) sont **générés par script** à partir des
-fichiers de configuration `configs/scenarios/*.yaml` ; ils ne sont pas versionnés.
+Tous les fichiers SUMO sont **générés par script** à partir des fichiers de configuration
+`configs/scenarios/*.yaml`. Ils sont **versionnés dans le dépôt** pour que toute l'équipe utilise
+exactement les mêmes scénarios, quelle que soit sa version de SUMO. Les fichiers de routes sont
+compressés (`.rou.xml.gz`, lus directement par SUMO), ce qui ramène l'ensemble d'environ 190 Mo à
+environ 12 Mo.
+
+**Version de SUMO utilisée pour la génération : Eclipse SUMO 1.28.0** (également enregistrée
+dans chaque `manifest.yaml`). Régénérer avec une autre version peut modifier les fichiers ;
+la différence apparaîtra alors dans git.
 
 ```bash
 networks/build_all.sh                               # construit puis valide tous les scénarios
@@ -12,9 +19,16 @@ python -m trafficmarl scenarios build grid3x3       # un seul scénario
 python -m trafficmarl scenarios validate all        # rapport : results/scenario_validation/
 ```
 
-Chaque scénario construit contient un fichier `manifest.yaml` qui liste le réseau, les fichiers
-de routes par profil de demande et par split (entraînement / évaluation), ainsi que les
-identifiants des feux. Le reste du code lit uniquement ce manifeste.
+Chaque scénario construit contient :
+
+- le réseau (`<nom>.net.xml`), avec un **plan fixe** par feu (ligne de base « plan fixe ») ;
+- `tls_actuated.add.xml` : la variante **actionnée** des plans (ligne de base « actionnée »).
+  Charger ce fichier comme fichier additionnel rend ces plans actifs. Les phases vertes ont une
+  durée de 5 à 50 s, valeurs par défaut de SUMO ;
+- `routes/<profil>_<split>_<i>.rou.xml.gz` : les fichiers de routes ;
+- `<nom>.sumocfg` : configuration pour ouvrir le scénario dans `sumo-gui` ;
+- `manifest.yaml` : liste de tous ces fichiers, des identifiants des feux et de la version de
+  SUMO. Le reste du code lit uniquement ce manifeste.
 
 ## 1. Vue d'ensemble
 
@@ -65,6 +79,18 @@ Implémentation : `src/trafficmarl/scenarios/demand.py`.
 | `medium` | 1,0 |
 | `high` | 1,5 |
 | `peak` | 0,5 → 1,0 → 1,7 → 1,7 → 1,0 → 0,5 (interpolation linéaire sur 1 h) |
+| `saturated` | 2,0 par défaut, ajusté par scénario (voir ci-dessous) ; étude de robustesse |
+| `stress` | 2,0, uniquement pour `grid5x5` ; étude de robustesse seule |
+
+**Niveau `saturated`.** Il est défini comme un niveau **au-delà de la saturation du plan fixe,
+que le contrôle actionné parvient encore à écouler, téléportation désactivée**. Le
+multiplicateur est donc calibré par scénario et vérifié sur les 5 fichiers de routes :
+`single` ×2,0, `corridor` ×2,0, `grid3x3` ×1,8 (×2,0 se bloque sur 2 fichiers sur 5),
+`grid5x5` ×1,8 (×2,0 se bloque définitivement).
+
+**Niveau `stress`** (`grid5x5` uniquement). ×2,0, simulé avec téléportation. Il sert seulement à
+mesurer combien de temps chaque méthode retarde le blocage et quel débit elle maintient. Il
+est exclu des tableaux de comparaison principaux.
 
   Le profil `peak` reproduit une heure de pointe non stationnaire qui dépasse brièvement le
   niveau `high`.
@@ -123,7 +149,10 @@ Procédure (`networks/lust/crop_lust.py`, paramètres dans `configs/scenarios/lu
    ainsi écarté : **il reste 14 carrefours à feux et 149 tronçons**.
 3. **Plans de feux** : nous gardons les plans fixes de LuST (`tll.static.xml`) dans le réseau, ce
    qui donne la ligne de base « plan fixe ». Les plans actionnés d'origine de LuST sont placés
-   dans un fichier séparé (`tls_actuated.add.xml`) pour la ligne de base « actionnée ». Garder
+   dans un fichier séparé (`tls_actuated.add.xml`) pour la ligne de base « actionnée ». Ces plans
+   LuST ne définissent pas de durées minimale et maximale : SUMO les exécute alors à durée fixe,
+   et ils se comportent exactement comme les plans fixes. Nous leur ajoutons donc la plage
+   5-50 s par défaut de SUMO. Garder
    les deux plans dans le réseau fait planter SUMO avec SUMO-RL, qui réécrit le premier plan de
    chaque feu (le plan actionné) alors que le plan fixe est actif.
 4. **Routes** : les itinéraires LuST sont découpés avec l'outil SUMO `cutRoutes.py`. Celui-ci
@@ -134,7 +163,17 @@ Procédure (`networks/lust/crop_lust.py`, paramètres dans `configs/scenarios/lu
    **08:00-09:00**. Les véhicules sont disjoints et chaque fenêtre est ramenée à t = 0.
 6. **Profils** : la demande réelle est mise à l'échelle par tirage aléatoire avec graine fixe
    (suppression ou duplication de véhicules) : `low` ×0,6, `medium` ×1,0, `high` ×1,3, `peak`
-   0,6 → 1,5 → 0,6 sur l'heure.
+   0,6 → 1,5 → 0,6 sur l'heure, `saturated` ×1,5.
+
+   **Cas particulier du niveau `saturated` pour LuST.** Au-delà de la demande réelle (×1,0),
+   le réseau découpé se bloque définitivement dès que la téléportation est désactivée, à tous
+   les multiplicateurs testés (×1,2 à ×1,8). La cause est un interblocage à l'intérieur des
+   carrefours, lié à la géométrie réelle, et non un excès de demande. L'option de LuST
+   `ignore-junction-blocker` ne règle qu'une partie des cas. Avec téléportation, réglage commun
+   à toutes les méthodes, ces mêmes simulations s'écoulent : 0,2-0,3 % de téléportations à
+   ×1,5. Pour LuST, le niveau `saturated` (×1,5) est donc validé par un critère de
+   téléportation (≤ 1 % sous plans actionnés, tous les véhicules arrivés). L'essai sans
+   téléportation est enregistré mais non exigé (décision D15).
 
 **Pourquoi DUE plutôt que DUA ?** Nous avons d'abord essayé les routes DUA (plus court chemin)
 de LuST. Avec elles, tous les conducteurs empruntent le même boulevard, et la zone découpée se
@@ -154,35 +193,60 @@ carrefour dans l'observation.
 
 ## 5. Validation
 
-Critère d'acceptation : chaque fichier de routes est simulé sans interface graphique avec les
-plans par défaut, jusqu'à ce que tous les véhicules aient quitté le réseau (plafond 7 200 s).
-SUMO ne doit signaler aucune erreur. La proportion de véhicules téléportés (le signe d'un blocage
-dans SUMO, après 300 s d'immobilité) doit rester **≤ 1 %**. Enfin, tous les véhicules doivent
-être insérés et arrivés.
+Chaque fichier de routes est simulé sans interface graphique jusqu'à ce que tous les véhicules
+aient quitté le réseau. Les téléportations sont, dans SUMO, le signe d'un blocage : un véhicule
+immobile depuis 300 s est téléporté.
 
-Résultats (moyenne sur les fichiers de chaque profil, entraînement et évaluation) :
+- **Profils `low`, `medium`, `high`, `peak`** : simulation avec les plans fixes, plafond de
+  7 200 s. SUMO ne doit signaler aucune erreur, au plus **1 %** des véhicules peuvent être
+  téléportés, et tous les véhicules doivent être insérés et arrivés.
+- **Profil `saturated`** : simulation avec les **plans actionnés**, plafond de 14 400 s. De la
+  congestion est attendue : les téléportations sont donc **rapportées sans seuil** (sauf pour
+  LuST, voir section 4). Pour vérifier l'absence de **blocage permanent**, nous refaisons la
+  simulation **sans téléportation** et exigeons que tous les véhicules arrivent. Cette
+  simulation s'arrête dès qu'aucun véhicule n'est arrivé pendant 600 s alors que d'autres sont
+  encore présents : le blocage est alors constaté.
+- **Profil `stress`** : plans actionnés, téléportation active, statistiques enregistrées sans
+  critère de réussite.
 
-| Scénario | Profil | Fichiers validés | Véhicules (moy.) | Attente moy. (s) | Durée trajet moy. (s) | Téléportations max |
-|---|---|---|---|---|---|---|
-| `single` | low | 5/5 | 1580 | 16,8 | 53,3 | 0,00 % |
-| `single` | medium | 5/5 | 3199 | 20,0 | 58,0 | 0,00 % |
-| `single` | high | 5/5 | 4804 | 45,4 | 93,1 | 0,00 % |
-| `single` | peak | 5/5 | 3843 | 44,3 | 91,3 | 0,00 % |
-| `corridor` | low | 5/5 | 2259 | 28,8 | 81,2 | 0,00 % |
-| `corridor` | medium | 5/5 | 4489 | 32,8 | 86,9 | 0,00 % |
-| `corridor` | high | 5/5 | 6767 | 63,5 | 127,6 | 0,00 % |
-| `corridor` | peak | 5/5 | 5280 | 53,9 | 114,7 | 0,00 % |
-| `grid3x3` | low | 5/5 | 3894 | 43,1 | 117,6 | 0,00 % |
-| `grid3x3` | medium | 5/5 | 7850 | 47,7 | 124,6 | 0,00 % |
-| `grid3x3` | high | 5/5 | 11575 | 63,5 | 145,6 | 0,00 % |
-| `grid3x3` | peak | 5/5 | 9201 | 65,8 | 148,7 | 0,00 % |
-| `grid5x5` | low | 5/5 | 6028 | 70,2 | 182,9 | 0,00 % |
-| `grid5x5` | medium | 5/5 | 12034 | 76,0 | 191,7 | 0,00 % |
-| `grid5x5` | high | 5/5 | 17963 | 92,5 | 214,0 | 0,00 % |
-| `grid5x5` | peak | 5/5 | 14173 | 92,1 | 213,1 | 0,00 % |
-| `lust` | low | 2/2 | 2594 | 27,6 | 116,8 | 0,00 % |
-| `lust` | medium | 2/2 | 4349 | 36,8 | 134,8 | 0,00 % |
-| `lust` | high | 2/2 | 5676 | 110,7 | 265,0 | 0,10 % |
-| `lust` | peak | 2/2 | 4900 | 83,7 | 227,7 | 0,11 % |
+Résultats (moyenne sur les fichiers d'entraînement et d'évaluation de chaque profil) :
 
-Total : 88/88 fichiers de routes validés.
+| Scénario | Profil | Plans | Fichiers validés | Véhicules (moy.) | Attente moy. (s) | Durée trajet moy. (s) | Téléportations max | Vidange sans téléportation |
+|---|---|---|---|---|---|---|---|---|
+| `single` | low | fixe | 5/5 | 1580 | 16,8 | 53,3 | 0,00 % | – |
+| `single` | medium | fixe | 5/5 | 3199 | 20,0 | 58,0 | 0,00 % | – |
+| `single` | high | fixe | 5/5 | 4804 | 45,4 | 93,1 | 0,00 % | – |
+| `single` | peak | fixe | 5/5 | 3843 | 44,3 | 91,3 | 0,00 % | – |
+| `single` | saturated | actionné | 5/5 | 6396 | 83,7 | 129,5 | 0,00 % | 5/5 |
+| `corridor` | low | fixe | 5/5 | 2259 | 28,8 | 81,2 | 0,00 % | – |
+| `corridor` | medium | fixe | 5/5 | 4489 | 32,8 | 86,9 | 0,00 % | – |
+| `corridor` | high | fixe | 5/5 | 6767 | 63,5 | 127,6 | 0,00 % | – |
+| `corridor` | peak | fixe | 5/5 | 5280 | 53,9 | 114,7 | 0,00 % | – |
+| `corridor` | saturated | actionné | 5/5 | 8953 | 46,2 | 107,4 | 0,00 % | 5/5 |
+| `grid3x3` | low | fixe | 5/5 | 3894 | 43,1 | 117,6 | 0,00 % | – |
+| `grid3x3` | medium | fixe | 5/5 | 7850 | 47,7 | 124,6 | 0,00 % | – |
+| `grid3x3` | high | fixe | 5/5 | 11575 | 63,5 | 145,6 | 0,00 % | – |
+| `grid3x3` | peak | fixe | 5/5 | 9201 | 65,8 | 148,7 | 0,00 % | – |
+| `grid3x3` | saturated | actionné | 5/5 | 14008 | 113,5 | 205,0 | 0,00 % | 5/5 |
+| `grid5x5` | low | fixe | 5/5 | 6028 | 70,2 | 182,9 | 0,00 % | – |
+| `grid5x5` | medium | fixe | 5/5 | 12034 | 76,0 | 191,7 | 0,00 % | – |
+| `grid5x5` | high | fixe | 5/5 | 17963 | 92,5 | 214,0 | 0,00 % | – |
+| `grid5x5` | peak | fixe | 5/5 | 14173 | 92,1 | 213,1 | 0,00 % | – |
+| `grid5x5` | saturated | actionné | 5/5 | 21520 | 135,5 | 269,8 | 0,00 % | 5/5 |
+| `grid5x5` | stress (robustesse seule) | actionné | 5/5 | 24017 | 254,6 | 403,7 | 1,09 % | – |
+| `lust` | low | fixe | 2/2 | 2594 | 27,6 | 116,8 | 0,00 % | – |
+| `lust` | medium | fixe | 2/2 | 4349 | 36,8 | 134,8 | 0,00 % | – |
+| `lust` | high | fixe | 2/2 | 5676 | 110,7 | 265,0 | 0,10 % | – |
+| `lust` | peak | fixe | 2/2 | 4900 | 83,7 | 227,7 | 0,11 % | – |
+| `lust` | saturated | actionné | 2/2 | 6559 | 170,3 | 341,4 | 0,31 % | 1/2 |
+
+Total : 115/115 fichiers de routes validés.
+
+*Les lignes `saturated` et `stress` sont simulées avec les plans **actionnés** : elles ne sont
+pas comparables aux lignes simulées avec les plans fixes. Le corridor attend par exemple moins
+en `saturated` (actionné) qu'en `high` (plan fixe).*
+
+Le rapport complet (une ligne par fichier) est produit par
+`python -m trafficmarl scenarios validate all` dans `results/scenario_validation/`. La
+validation s'exécute en parallèle, un processus par simulation, et reprend là où elle s'était
+arrêtée : chaque résultat est écrit dès la fin de sa simulation.

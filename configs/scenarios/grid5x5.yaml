@@ -5,3 +5,7 @@ scenario:
   network: {nx: 5, ny: 5}
   demand:
     entry_rate: 600  # knee at ~950 veh/h
+    profiles:
+      saturated: [1.8]   # x2.0 gridlocks permanently under actuated control (docs/decisions.md D15)
+      stress: [2.0]      # robustness-only: time to gridlock and throughput, teleporting on
+    robustness_only: [stress]

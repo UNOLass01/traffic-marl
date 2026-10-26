@@ -46,3 +46,12 @@ def test_get_logger_is_namespaced():
     assert get_logger("envs").name == "trafficmarl.envs"
     assert get_logger("trafficmarl.envs").name == "trafficmarl.envs"
     assert isinstance(get_logger("x"), logging.Logger)
+
+
+def test_gzip_output_is_reproducible_and_readable(tmp_path):
+    for name in ("a.xml.gz", "b.xml.gz"):
+        with paths.open_output(tmp_path / name) as fh:
+            fh.write(b"<routes/>")
+    assert (tmp_path / "a.xml.gz").read_bytes() == (tmp_path / "b.xml.gz").read_bytes()
+    with paths.open_input(tmp_path / "a.xml.gz") as fh:
+        assert fh.read() == b"<routes/>"

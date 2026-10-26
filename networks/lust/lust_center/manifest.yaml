@@ -1,0 +1,91 @@
+name: lust
+net_file: lust.net.xml
+tls_ids:
+- '-10438'
+- '-11222'
+- '-16730'
+- '-17472'
+- '-20740'
+- '-21042'
+- '-22774'
+- '-24852'
+- '-28504'
+- '-29558'
+- '-5432'
+- '-5554'
+- '-8178'
+- '-8358'
+begin: 0
+duration: 3600
+routes:
+  low:
+    train:
+    - routes/low_train_0.rou.xml.gz
+    eval:
+    - routes/low_eval_0.rou.xml.gz
+  medium:
+    train:
+    - routes/medium_train_0.rou.xml.gz
+    eval:
+    - routes/medium_eval_0.rou.xml.gz
+  high:
+    train:
+    - routes/high_train_0.rou.xml.gz
+    eval:
+    - routes/high_eval_0.rou.xml.gz
+  peak:
+    train:
+    - routes/peak_train_0.rou.xml.gz
+    eval:
+    - routes/peak_eval_0.rou.xml.gz
+  saturated:
+    train:
+    - routes/saturated_train_0.rou.xml.gz
+    eval:
+    - routes/saturated_eval_0.rou.xml.gz
+vehicles:
+  routes/low_train_0.rou.xml.gz: 2383
+  routes/low_eval_0.rou.xml.gz: 2804
+  routes/medium_train_0.rou.xml.gz: 4068
+  routes/medium_eval_0.rou.xml.gz: 4630
+  routes/high_train_0.rou.xml.gz: 5293
+  routes/high_eval_0.rou.xml.gz: 6059
+  routes/peak_train_0.rou.xml.gz: 4552
+  routes/peak_eval_0.rou.xml.gz: 5247
+  routes/saturated_train_0.rou.xml.gz: 6139
+  routes/saturated_eval_0.rou.xml.gz: 6979
+additional_files:
+- vtypes.add.xml
+sumocfg: lust.sumocfg
+actuated_file: tls_actuated.add.xml
+sumo_version: 1.28.0
+robustness_only_profiles: []
+notes:
+  source: LuST scenario (Codeca et al., 2017), MIT license
+  crop_center_lonlat:
+  - 6.1302
+  - 49.6113
+  crop_half_size_m: 600
+  tls_in_square: 18
+  tls_dropped_disconnected:
+  - '-13968'
+  - '-16502'
+  - '-7124'
+  - '-8224'
+  tls_unset_on_border:
+  - '-3120'
+  - '-5236'
+  - '-824'
+  - '-8670'
+  edges: 149
+  actuated_programs: 14
+  route_source:
+  - DUERoutes/local.static.0.rou.xml
+  - DUERoutes/local.static.1.rou.xml
+  - DUERoutes/local.static.2.rou.xml
+  - transit.rou.xml
+  windows_s:
+    train:
+    - 25200
+    eval:
+    - 28800

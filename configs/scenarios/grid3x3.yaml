@@ -5,3 +5,5 @@ scenario:
   network: {nx: 3, ny: 3}
   demand:
     entry_rate: 650  # knee at ~1000 veh/h
+    profiles:
+      saturated: [1.8]   # x2.0 gridlocks on 2/5 route files under actuated control (D15)

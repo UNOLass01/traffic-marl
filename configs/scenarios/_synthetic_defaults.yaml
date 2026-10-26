@@ -21,9 +21,24 @@ scenario:
       medium: [1.0]
       high: [1.5]
       peak: [0.5, 1.0, 1.7, 1.7, 1.0, 0.5]   # morning-peak ramp, briefly above `high`
+      # Robustness study: beyond fixed-time saturation, still drainable by actuated
+      # control with teleporting off (lowered per scenario where 2.0 gridlocks).
+      saturated: [2.0]
+    robustness_only: []        # profiles excluded from the main comparison tables
     splits:                    # one route file per seed; seeds never shared
       train: [1001, 1002, 1003]
       eval: [2001, 2002]
   validation:
     end: 7200                  # s cap: simulate until all vehicles left or this time
-    max_teleport_ratio: 0.01
+    max_teleport_ratio: 0.01   # default rule: static programs, <= 1 % teleports
+    profiles:                  # per-profile overrides
+      saturated:               # robustness level beyond fixed-time saturation
+        controller: actuated   # judged under the actuated baseline
+        end: 14400
+        max_teleport_ratio: null   # teleports reported, not thresholded
+        gridlock_check: true       # rerun without teleporting: every vehicle must arrive
+      stress:                  # robustness-only level that is allowed to gridlock
+        controller: actuated
+        end: 14400
+        max_teleport_ratio: null
+        report_only: true

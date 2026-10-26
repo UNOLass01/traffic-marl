@@ -31,10 +31,3 @@ external/
 # Local editor / tool settings
 .vscode/
 .idea/
-
-# Generated scenario files (rebuild with networks/build_all.sh)
-networks/**/*.net.xml
-networks/**/*.rou.xml
-networks/**/*.add.xml
-networks/**/*.sumocfg
-networks/**/manifest.yaml
