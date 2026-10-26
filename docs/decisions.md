@@ -343,3 +343,69 @@ Each entry states the decision, the reason, and its impact on the code and the r
   reading of "no increase" avoids rejecting a method for one teleport in one seed when the
   baseline also has teleports, while still rejecting any systematic increase.
 - **Impact:** the "no increase" interpretation is open to revision by the team.
+
+### D28 — 2026-10-26 — Webster fixed-time plans
+- **Decision:** Webster plans are computed per scenario and demand profile from the **training**
+  route files (evaluation files never used):
+  - movement flows (incoming edge -> outgoing edge) counted from the routes, shared equally
+    among the incoming lanes serving each movement, hourly, averaged over the training files;
+  - critical ratio of a phase = largest lane flow / 1800 veh/h/lane among the lanes with a
+    protected ('G') movement in it; Y = sum over green phases; lost time = yellow time per green
+    phase;
+  - cycle C0 = (1.5 L + 5) / (1 - Y), **capped at 150 s** (configurable); if **Y >= 1** the
+    capped cycle is used, with greens still proportional to the critical ratios;
+  - greens = (cycle - non-green phase time) x y_p / Y, rounded and clipped to [5, 50] s (D13);
+  - for the non-stationary **peak** profile, one plan from the **busiest 15-minute flow** at each
+    junction (by departure time), scaled to an hourly rate.
+
+  Plans: `networks/<scenario>/webster/<profile>.add.xml` and `plans.yaml`
+  (`python -m trafficmarl baselines webster all`). Webster is the reference of the acceptance rule
+  (D27).
+- **Reason:** Webster timings are what a traffic engineer would deploy, the fair classical
+  reference; computing them from training demand keeps evaluation traffic unseen.
+- **Impact:** capped plans occur where demand is near or above saturation: single high, peak and
+  saturated (Y = 0.88, 0.91, 1.18), grid3x3 saturated, corridor saturated (2 of 4 lights) and
+  grid5x5 stress. Approximations: a lane protected in two phases counts in both; departure time
+  is used instead of arrival time at the junction for the peak window.
+
+### D29 — 2026-10-26 — Centralized single-agent baseline
+- **Decision:** one SB3-contrib MaskablePPO agent controls every light: concatenated observations
+  (N x 47), factored joint action `MultiDiscrete([4] * N)` with the agents' masks concatenated
+  (same constraints), reward = mean of the agents' local rewards (switch and gridlock penalties
+  included). Hyperparameters in `configs/algorithms/centralized_ppo.yaml`; trained on medium
+  demand for 300k joint decisions (the Phase 5 reward-check budget) with 5 seeds on single,
+  corridor and grid3x3, and as a 100k-step scalability probe (seed 0) on grid5x5. Evaluated on the
+  medium, high and peak evaluation files.
+- **Device:** CPU (`device: cpu`): on grid3x3 the training runs at 149 steps/s on CPU against 109
+  on the GPU (16k-step benchmark), because SB3's small MLP updates do not benefit from the GPU.
+  This settles D6 for SB3; the RLlib benchmark remains in Phase 5.
+- **Reason:** the brief requires a centralized comparison point and asks where it stops scaling;
+  a factored action keeps the output linear in N instead of 4^N.
+- **Impact:** training statistics (wall time, steps/s, peak memory, parameters, gridlocks) are
+  written to `results/baselines/train_centralized_ppo/<scenario>/<seed>/training_stats.json`.
+
+### D30 — 2026-10-27 — Phase 4 baseline findings
+- **Decision:** the baseline table (`python analysis/baseline_table.py`, results in
+  `results/tables/baselines.{csv,md}`) is accepted as the Phase 4 reference with these findings
+  recorded rather than corrected:
+  - **Max-pressure** has the lowest mean waiting time in every scenario and demand and beats
+    Webster under D27 everywhere, but it can starve movements: longest red up to 1,065 s on
+    grid3x3 and 3,775 s on LuST (max-red is not enforced, D19), and on single high/peak its total
+    delay (waiting plus insertion delay) is higher than Webster's (62.7 vs 58.8 s, 75.2 vs 63.4 s).
+    Total delay and max wait are therefore reported next to waiting in every table.
+  - **Webster** is weaker than SUMO's default program at single high, grid3x3/grid5x5 peak and on
+    every LuST profile (above the 1 % teleport flag on LuST high). It stays the D27 reference, but
+    results are also read against the best classical baseline (max-pressure).
+  - **Centralized PPO** (D29) beats Webster at medium demand on single, corridor and grid3x3, never
+    reaches max-pressure, and generalizes poorly to unseen demand on single (high/peak: total
+    delay 135 and 92 s, max wait above 800 s). At 300k decisions the single curves have
+    plateaued; the corridor and grid3x3 curves are still rising. Training speed (joint decisions
+    per second, 8 SUMO workers) drops from 1,014 (1 light) to 610 (4), 265 (9) and 87 (25); the grid5x5 probe
+    (100k decisions, 20 min) is far worse than every classical baseline (waiting 178 s vs 69 s for
+    Webster at medium, 1.0 % teleports and 1,549 unfinished vehicles at high). This is where the
+    centralized approach stops scaling in our budget.
+  - **LuST** confidence intervals are wide (2 evaluation route files, high variance between seeds).
+- **Reason:** these are results, not bugs; changing Webster or adding max-red would change the
+  baselines after seeing them.
+- **Impact:** Phase 5 must compare IPPO with max-pressure as well as Webster; the centralized
+  budget can be extended on corridor and grid3x3 if the team wants a converged reference.

@@ -32,11 +32,16 @@ from trafficmarl.utils.run_info import write_run_info
 logger = get_logger(__name__)
 
 ACTUATED = "@actuated"  # placeholder for the scenario's actuated program file
+WEBSTER = "@webster"  # placeholder for the Webster plan of the evaluated demand profile
 
 # Built-in controllers; later phases register more (Webster, max-pressure, RL policies).
 CONTROLLERS: dict[str, dict[str, Any]] = {
     "fixed_time": {"control": "program", "additional": []},
     "actuated": {"control": "program", "additional": [ACTUATED]},
+    "webster": {"control": "program", "additional": [WEBSTER]},
+    "max_pressure": {"control": "agents", "policy": "max_pressure"},
+    # Needs ``checkpoint=<run_dir>/model.zip`` (trained with experiments/run_baselines.py).
+    "centralized_ppo": {"control": "agents", "policy": "centralized_ppo"},
     "random": {"control": "agents", "policy": "random"},
     "keep": {"control": "agents", "policy": "keep"},
     "switch": {"control": "agents", "policy": "switch"},
@@ -46,11 +51,15 @@ CONTROLLERS: dict[str, dict[str, Any]] = {
 POLICY_FACTORIES: dict[str, Callable] = {}
 
 
-def _resolve_additional(spec: dict, manifest) -> list[str]:
+def _resolve_additional(spec: dict, manifest, profile: str) -> list[str]:
     files = []
     for item in spec.get("additional", []):
         if item == ACTUATED:
             files.append(str(manifest.path(manifest.actuated_file)))
+        elif item == WEBSTER:
+            from trafficmarl.baselines.webster import webster_file
+
+            files.append(str(webster_file(manifest, profile)))
         else:
             files.append(str(paths.resolve(item)))
     return files
@@ -58,6 +67,14 @@ def _resolve_additional(spec: dict, manifest) -> list[str]:
 
 def _make_policy(spec: dict, env, seed: int):
     name = spec["policy"]
+    if name == "max_pressure":
+        from trafficmarl.baselines.max_pressure import make_max_pressure
+
+        return make_max_pressure(spec, env)
+    if name == "centralized_ppo":
+        from trafficmarl.baselines.centralized import make_centralized
+
+        return make_centralized(spec, env)
     if name in POLICY_FACTORIES:
         return POLICY_FACTORIES[name](spec, env)
     from trafficmarl.envs.policies import make_policy
@@ -74,6 +91,8 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
     from trafficmarl.scenarios.spec import Manifest, output_dir
 
     manifest = Manifest.load(output_dir(config["scenario"]))
+    if "checkpoint" in spec:  # per-seed checkpoints: "<dir>/{seed}/model.zip"
+        spec = {**spec, "checkpoint": spec["checkpoint"].format(seed=seed)}
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         sumo_args, files = ep.output_args(tmp_path)
@@ -82,7 +101,10 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
             config,
             split="eval",
             seed=seed,
-            extra_additional_files=[str(tls_add), *_resolve_additional(spec, manifest)],
+            extra_additional_files=[
+                str(tls_add),
+                *_resolve_additional(spec, manifest, config["env"]["profile"]),
+            ],
             extra_sumo_args=sumo_args,
             control=spec["control"],
         )

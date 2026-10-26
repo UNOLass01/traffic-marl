@@ -38,6 +38,16 @@ env:
     gridlock_penalty: auto # terminal penalty on gridlock; auto = bound x remaining steps
     gridlock_penalty_cap_std: 100  # cap of `auto`, in per-step std of the traffic term (D24)
 
+# Classical baselines (docs/decisions.md D28-D30).
+baselines:
+  webster:
+    saturation_flow: 1800      # veh/h per lane
+    max_cycle: 150             # s; also used when Y >= 1
+    lost_time_per_phase: null  # s per green phase; null = the scenario's yellow time
+    peak_window: 900           # s; `peak` plans use the busiest 15-minute flow, scaled to 1 h
+    min_green: 5               # s, shared constraints (D13)
+    max_green: 50              # s
+
 metrics:
   teleport_flag_threshold: 0.01   # runs above this teleport rate are flagged
 

@@ -1,0 +1,419 @@
+config:
+  saturation_flow: 1800
+  max_cycle: 150
+  lost_time_per_phase: 3
+  peak_window: 900
+  min_green: 5
+  max_green: 50
+  yellow_time: 3
+plans:
+  low:
+    A0:
+      cycle_s: 37.0
+      Y: 0.239
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 7.0
+      - 5.0
+    A1:
+      cycle_s: 38.0
+      Y: 0.241
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 8.0
+      - 5.0
+    A2:
+      cycle_s: 37.0
+      Y: 0.253
+      capped: false
+      greens_s:
+      - 7.0
+      - 5.0
+      - 8.0
+      - 5.0
+    B0:
+      cycle_s: 38.0
+      Y: 0.239
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 8.0
+      - 5.0
+    B1:
+      cycle_s: 38.0
+      Y: 0.243
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 8.0
+      - 5.0
+    B2:
+      cycle_s: 37.0
+      Y: 0.249
+      capped: false
+      greens_s:
+      - 7.0
+      - 5.0
+      - 8.0
+      - 5.0
+    C0:
+      cycle_s: 38.0
+      Y: 0.239
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 8.0
+      - 5.0
+    C1:
+      cycle_s: 37.0
+      Y: 0.245
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 7.0
+      - 5.0
+    C2:
+      cycle_s: 37.0
+      Y: 0.248
+      capped: false
+      greens_s:
+      - 7.0
+      - 5.0
+      - 8.0
+      - 5.0
+  medium:
+    A0:
+      cycle_s: 47.0
+      Y: 0.485
+      capped: false
+      greens_s:
+      - 13.0
+      - 5.0
+      - 12.0
+      - 5.0
+    A1:
+      cycle_s: 48.0
+      Y: 0.494
+      capped: false
+      greens_s:
+      - 13.0
+      - 5.0
+      - 13.0
+      - 5.0
+    A2:
+      cycle_s: 46.0
+      Y: 0.471
+      capped: false
+      greens_s:
+      - 12.0
+      - 5.0
+      - 12.0
+      - 5.0
+    B0:
+      cycle_s: 47.0
+      Y: 0.486
+      capped: false
+      greens_s:
+      - 13.0
+      - 5.0
+      - 12.0
+      - 5.0
+    B1:
+      cycle_s: 47.0
+      Y: 0.483
+      capped: false
+      greens_s:
+      - 12.0
+      - 5.0
+      - 13.0
+      - 5.0
+    B2:
+      cycle_s: 46.0
+      Y: 0.478
+      capped: false
+      greens_s:
+      - 12.0
+      - 5.0
+      - 12.0
+      - 5.0
+    C0:
+      cycle_s: 46.0
+      Y: 0.479
+      capped: false
+      greens_s:
+      - 12.0
+      - 5.0
+      - 12.0
+      - 5.0
+    C1:
+      cycle_s: 48.0
+      Y: 0.484
+      capped: false
+      greens_s:
+      - 13.0
+      - 5.0
+      - 13.0
+      - 5.0
+    C2:
+      cycle_s: 48.0
+      Y: 0.486
+      capped: false
+      greens_s:
+      - 13.0
+      - 5.0
+      - 13.0
+      - 5.0
+  high:
+    A0:
+      cycle_s: 81.0
+      Y: 0.716
+      capped: false
+      greens_s:
+      - 27.0
+      - 8.0
+      - 26.0
+      - 8.0
+    A1:
+      cycle_s: 80.0
+      Y: 0.716
+      capped: false
+      greens_s:
+      - 26.0
+      - 8.0
+      - 26.0
+      - 8.0
+    A2:
+      cycle_s: 78.0
+      Y: 0.704
+      capped: false
+      greens_s:
+      - 26.0
+      - 7.0
+      - 25.0
+      - 8.0
+    B0:
+      cycle_s: 75.0
+      Y: 0.698
+      capped: false
+      greens_s:
+      - 24.0
+      - 8.0
+      - 24.0
+      - 7.0
+    B1:
+      cycle_s: 76.0
+      Y: 0.701
+      capped: false
+      greens_s:
+      - 24.0
+      - 8.0
+      - 25.0
+      - 7.0
+    B2:
+      cycle_s: 78.0
+      Y: 0.705
+      capped: false
+      greens_s:
+      - 25.0
+      - 8.0
+      - 25.0
+      - 8.0
+    C0:
+      cycle_s: 81.0
+      Y: 0.716
+      capped: false
+      greens_s:
+      - 27.0
+      - 8.0
+      - 26.0
+      - 8.0
+    C1:
+      cycle_s: 81.0
+      Y: 0.716
+      capped: false
+      greens_s:
+      - 26.0
+      - 8.0
+      - 27.0
+      - 8.0
+    C2:
+      cycle_s: 77.0
+      Y: 0.704
+      capped: false
+      greens_s:
+      - 25.0
+      - 7.0
+      - 26.0
+      - 7.0
+  peak:
+    A0:
+      cycle_s: 92.0
+      Y: 0.749
+      capped: false
+      greens_s:
+      - 32.0
+      - 9.0
+      - 31.0
+      - 8.0
+    A1:
+      cycle_s: 91.0
+      Y: 0.744
+      capped: false
+      greens_s:
+      - 30.0
+      - 9.0
+      - 30.0
+      - 10.0
+    A2:
+      cycle_s: 97.0
+      Y: 0.764
+      capped: false
+      greens_s:
+      - 33.0
+      - 9.0
+      - 33.0
+      - 10.0
+    B0:
+      cycle_s: 94.0
+      Y: 0.754
+      capped: false
+      greens_s:
+      - 32.0
+      - 9.0
+      - 32.0
+      - 9.0
+    B1:
+      cycle_s: 91.0
+      Y: 0.746
+      capped: false
+      greens_s:
+      - 30.0
+      - 10.0
+      - 29.0
+      - 10.0
+    B2:
+      cycle_s: 94.0
+      Y: 0.757
+      capped: false
+      greens_s:
+      - 31.0
+      - 10.0
+      - 33.0
+      - 8.0
+    C0:
+      cycle_s: 96.0
+      Y: 0.761
+      capped: false
+      greens_s:
+      - 32.0
+      - 10.0
+      - 32.0
+      - 10.0
+    C1:
+      cycle_s: 100.0
+      Y: 0.771
+      capped: false
+      greens_s:
+      - 33.0
+      - 11.0
+      - 33.0
+      - 11.0
+    C2:
+      cycle_s: 102.0
+      Y: 0.775
+      capped: false
+      greens_s:
+      - 34.0
+      - 11.0
+      - 34.0
+      - 11.0
+  saturated:
+    A0:
+      cycle_s: 145.0
+      Y: 0.864
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 16.0
+    A1:
+      cycle_s: 144.0
+      Y: 0.861
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    A2:
+      cycle_s: 146.0
+      Y: 0.849
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 17.0
+    B0:
+      cycle_s: 144.0
+      Y: 0.864
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    B1:
+      cycle_s: 144.0
+      Y: 0.852
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    B2:
+      cycle_s: 144.0
+      Y: 0.866
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    C0:
+      cycle_s: 143.0
+      Y: 0.856
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 15.0
+    C1:
+      cycle_s: 147.0
+      Y: 0.863
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 18.0
+    C2:
+      cycle_s: 145.0
+      Y: 0.856
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 17.0

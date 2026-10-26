@@ -1,0 +1,18 @@
+# Centralized single-agent baseline: SB3-contrib MaskablePPO over the joint (factored) action.
+# Same budget as the Phase 5 reward check (300k decisions) for comparability.
+algorithm:
+  name: centralized_ppo
+  total_timesteps: 300000   # joint decisions (one per 5 s of simulation)
+  n_envs: 8                 # parallel SUMO instances (one subprocess each)
+  n_steps: 512              # rollout length per env -> 4096 transitions per update
+  batch_size: 256
+  n_epochs: 10
+  learning_rate: 3.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01
+  net_arch: [256, 256]
+# SB3 MLP updates are faster on CPU than on the GPU here (grid3x3: 149 vs 109
+# steps/s, docs/decisions.md D29).
+device: cpu

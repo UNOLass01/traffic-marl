@@ -1,0 +1,59 @@
+config:
+  saturation_flow: 1800
+  max_cycle: 150
+  lost_time_per_phase: 3
+  peak_window: 900
+  min_green: 5
+  max_green: 50
+  yellow_time: 3
+plans:
+  low:
+    A0:
+      cycle_s: 38.0
+      Y: 0.294
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 8.0
+      - 5.0
+  medium:
+    A0:
+      cycle_s: 57.0
+      Y: 0.593
+      capped: false
+      greens_s:
+      - 18.0
+      - 5.0
+      - 17.0
+      - 5.0
+  high:
+    A0:
+      cycle_s: 144.0
+      Y: 0.881
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+  peak:
+    A0:
+      cycle_s: 142.0
+      Y: 0.907
+      capped: true
+      greens_s:
+      - 50.0
+      - 14.0
+      - 50.0
+      - 16.0
+  saturated:
+    A0:
+      cycle_s: 145.0
+      Y: 1.178
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 16.0

@@ -51,6 +51,7 @@ def test_delay_metrics_include_unfinished_and_never_inserted(outputs):
     # Total delay: departDelay + timeLoss (21, 43, 48) and 20 for d.
     assert m["mean_total_delay"] == pytest.approx((21 + 43 + 48 + 20) / 4)
     assert m["co2_total_kg"] == pytest.approx(0.6)
+    assert m["max_waiting_time"] == 45.0  # the unfinished vehicle counts
 
 
 def test_network_queue_is_time_average(outputs):

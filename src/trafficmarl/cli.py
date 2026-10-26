@@ -243,6 +243,28 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_baselines_webster(args: argparse.Namespace) -> int:
+    """Compute Webster fixed-time plans from the training route files of every profile."""
+    from trafficmarl.baselines.webster import build_plans
+    from trafficmarl.scenarios.spec import Manifest, load_scenario_config, output_dir
+
+    base = load_config(paths.CONFIGS_DIR / "base.yaml")
+    for name in _scenario_names(args.names):
+        scenario = load_scenario_config(name)
+        manifest = Manifest.load(output_dir(scenario))
+        cfg = {**base["baselines"]["webster"], "yellow_time": scenario["signals"]["yellow_time"]}
+        plans = build_plans(manifest, list(manifest.routes), cfg)
+        for profile, per_tls in plans.items():
+            cycles = [p.cycle for p in per_tls.values()]
+            capped = sum(p.capped for p in per_tls.values())
+            print(
+                f"{name:>9} {profile:>9}: cycle {min(cycles):.0f}-{max(cycles):.0f} s, "
+                f"max Y {max(p.flow_ratio_sum for p in per_tls.values()):.2f}, "
+                f"capped {capped}/{len(per_tls)}"
+            )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="trafficmarl",
@@ -293,6 +315,12 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--workers", type=int, default=None)
     evaluate.add_argument("overrides", nargs="*", metavar="key.path=value")
     evaluate.set_defaults(func=_cmd_evaluate)
+
+    baselines = sub.add_parser("baselines", help="prepare classical baselines")
+    base_sub = baselines.add_subparsers(dest="baselines_command", metavar="<action>", required=True)
+    webster = base_sub.add_parser("webster", help="Webster plans from the training demand")
+    webster.add_argument("names", nargs="+", help="scenario names or 'all'")
+    webster.set_defaults(func=_cmd_baselines_webster)
 
     env = sub.add_parser("env", help="inspect and exercise the multi-agent environment")
     env_sub = env.add_subparsers(dest="env_command", metavar="<action>", required=True)

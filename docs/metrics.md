@@ -11,6 +11,7 @@ dans son propre processus.
 | Indicateur | Définition |
 |---|---|
 | Temps d'attente moyen (s) | `waitingTime` de SUMO pour les véhicules **arrivés** (indicateur principal) |
+| Attente maximale et 95e centile (s) | sur tous les véhicules insérés, arrivés ou non : mesure la privation de vert vue par les usagers |
 | Retard d'insertion (s) | `departDelay` des véhicules insérés ; pour un véhicule jamais inséré : fin − départ prévu |
 | Véhicules non terminés | encore dans le réseau à la fin + jamais insérés |
 | Retard total (s, véh·h) | retard d'insertion + temps perdu (`timeLoss`) pour les véhicules arrivés ou en cours ; fin − départ prévu pour les véhicules jamais insérés ; moyenne sur tous les véhicules dont le départ était prévu |

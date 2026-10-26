@@ -157,6 +157,11 @@ def delay_metrics(records: list[dict], departures: dict[str, float], end: float)
         "never_inserted": len(never_inserted),
         "unfinished_total": len(in_network) + len(never_inserted),
         "mean_waiting_time": mean([r["waiting"] for r in arrived]),
+        # Starvation seen by vehicles (arrived and unfinished): longest and 95th-percentile wait.
+        "max_waiting_time": float(max((r["waiting"] for r in records), default=0.0)),
+        "p95_waiting_time": (
+            float(np.percentile([r["waiting"] for r in records], 95)) if records else 0.0
+        ),
         "mean_travel_time": mean([r["duration"] for r in arrived]),
         "mean_time_loss": mean([r["time_loss"] for r in arrived]),
         "mean_insertion_delay": mean(insertion),

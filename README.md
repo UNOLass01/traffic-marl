@@ -18,7 +18,7 @@ extension studies parameter sharing without raw traffic data.
 | 1 | Scenarios and demand profiles | done |
 | 2 | Environment factory, observations, rewards | done |
 | 3 | Metrics | done |
-| 4 | Baselines | — |
+| 4 | Baselines | in review |
 | 5 | Independent MARL (IPPO) | — |
 | 6 | Coordinated variants | — |
 | 7 | CTDE (QMIX, MADDPG, MAPPO) | — |
@@ -140,6 +140,18 @@ python experiments/evaluate.py --config configs/experiments/single_medium_baseli
 ```
 
 Results: `results/<experiment>/<method>/<seed>/metrics.csv` + resolved config + git commit.
+
+### Baselines
+
+Fixed-time (SUMO's default program and Webster plans computed from the training demand),
+actuated, max-pressure, and a centralized single agent (MaskablePPO over the joint action). All
+run under the same constraints, episode rules and metrics as the learning agents.
+
+```bash
+python -m trafficmarl baselines webster all        # Webster plans per scenario and profile
+python experiments/run_baselines.py                # evaluate all baselines (resumable)
+python analysis/baseline_table.py                  # results/tables/baselines.{csv,md}
+```
 
 ### Configuration
 
