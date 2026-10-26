@@ -1,6 +1,8 @@
 # Shared settings of the netgenerate-based scenarios. Not a scenario itself
 # (no `name` / `output_dir`); scenario files include it via `defaults`.
 scenario:
+  signals:
+    yellow_time: 3             # s, as in the static programs (shared by all methods)
   kind: synthetic
   network:
     block_length: 200          # m between neighbouring intersections

@@ -16,7 +16,7 @@ import yaml
 
 from trafficmarl import __version__
 from trafficmarl.utils import paths
-from trafficmarl.utils.config import ConfigError, load_config
+from trafficmarl.utils.config import ConfigError, apply_overrides, load_config
 
 KEY_PACKAGES = (
     "torch",
@@ -110,6 +110,89 @@ def _cmd_scenarios_validate(args: argparse.Namespace) -> int:
     return 0 if (table["passed"] == "True").all() else 1
 
 
+def _cmd_env_rollout(args: argparse.Namespace) -> int:
+    """Run one episode with a heuristic policy and print reward-component statistics."""
+    import json
+
+    from trafficmarl.envs.factory import experiment_config
+    from trafficmarl.envs.rollout import run_rollout
+
+    overrides = {
+        "env": {
+            "profile": args.profile,
+            "observation": {"type": args.obs},
+            "reward": {"type": args.reward},
+        }
+    }
+    config = apply_overrides(experiment_config(args.scenario, overrides), args.overrides)
+    result = run_rollout(
+        config, policy=args.policy, split=args.split, seed=args.seed, max_seconds=args.seconds
+    )
+    ep = result["episode"]
+    print(
+        f"{args.scenario} {args.profile}/{args.split} policy={args.policy}: "
+        f"{result['steps']} steps, end={ep['end_reason']} at t={ep['sim_time']:.0f}s, "
+        f"arrived {ep['arrived']}/{ep['departed']}, teleports {ep['teleports']} "
+        f"({result['wall_time_s']}s)"
+    )
+    header = f"{'agent':>8} {'component':>15} {'mean':>9} {'std':>9} {'min':>9} {'max':>9}"
+    print(header)
+    rows = {**result["reward_components"], "ALL": result["reward_components_all"]}
+    for agent, comps in rows.items():
+        for name in ("traffic", "switch_penalty", "reward"):
+            st = comps[name]
+            print(
+                f"{agent:>8} {name:>15} {st['mean']:9.4f} {st['std']:9.4f} "
+                f"{st['min']:9.4f} {st['max']:9.4f}"
+            )
+    out = (
+        paths.RESULTS_DIR
+        / "env_rollouts"
+        / (
+            f"{args.scenario}_{args.profile}_{args.split}_{args.policy}_{args.obs}_{args.reward}.json"
+        )
+    )
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, indent=2, default=float), encoding="utf-8")
+    print(f"saved: {out}")
+    return 0
+
+
+def _cmd_env_topology(args: argparse.Namespace) -> int:
+    """Approach coverage, neighbour slots and message volume per scenario."""
+    import json
+
+    from trafficmarl.envs.features import FeatureSpec
+    from trafficmarl.envs.topology import build_topology, summarize
+    from trafficmarl.envs.traffic_env import count_green_phases
+    from trafficmarl.scenarios.spec import Manifest, load_scenario_config, output_dir
+
+    base = load_config(paths.CONFIGS_DIR / "base.yaml")
+    max_distance = base["env"]["observation"]["max_distance"]
+    summaries = {}
+    for name in _scenario_names(args.names):
+        manifest = Manifest.load(output_dir(load_scenario_config(name)))
+        net_file = str(manifest.path(manifest.net_file))
+        topology = build_topology(net_file, max_distance)
+        n_green = count_green_phases(net_file)
+        spec = FeatureSpec(
+            agents=sorted(topology), topology=topology, n_green=n_green,
+            max_lanes=max(len(t.stop_lanes) for t in topology.values()),
+            max_phases=max(n_green.values()), max_distance=max_distance,
+            max_green=base["env"]["max_green"], extended=True, agent_id=False,
+        )  # fmt: skip
+        summary = summarize(topology, n_green, spec.message_dim)
+        summary["obs_dim_local"] = spec.local_dim
+        summary["obs_dim_extended"] = spec.obs_dim
+        summaries[name] = summary
+        print(name, json.dumps(summary))
+    out = paths.RESULTS_DIR / "env_topology" / "topology_summary.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(summaries, indent=2), encoding="utf-8")
+    print(f"saved: {out}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="trafficmarl",
@@ -150,6 +233,23 @@ def build_parser() -> argparse.ArgumentParser:
         "--output", default="results/scenario_validation/validation.csv", help="CSV report"
     )
     validate.set_defaults(func=_cmd_scenarios_validate)
+
+    env = sub.add_parser("env", help="inspect and exercise the multi-agent environment")
+    env_sub = env.add_subparsers(dest="env_command", metavar="<action>", required=True)
+    rollout = env_sub.add_parser("rollout", help="one episode with a heuristic policy")
+    rollout.add_argument("scenario")
+    rollout.add_argument("--policy", choices=("random", "keep", "switch"), default="random")
+    rollout.add_argument("--profile", default="medium")
+    rollout.add_argument("--split", choices=("train", "eval"), default="eval")
+    rollout.add_argument("--obs", choices=("local", "extended"), default="local")
+    rollout.add_argument("--reward", choices=("local", "neighborhood", "global"), default="local")
+    rollout.add_argument("--seconds", type=float, default=None, help="stop early (sim time)")
+    rollout.add_argument("--seed", type=int, default=0)
+    rollout.add_argument("overrides", nargs="*", metavar="key.path=value")
+    rollout.set_defaults(func=_cmd_env_rollout)
+    topology = env_sub.add_parser("topology", help="topology summary per scenario")
+    topology.add_argument("names", nargs="+", help="scenario names or 'all'")
+    topology.set_defaults(func=_cmd_env_topology)
     return parser
 
 

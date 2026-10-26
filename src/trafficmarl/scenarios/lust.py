@@ -8,7 +8,9 @@ Procedure (every step is driven by ``configs/scenarios/lust.yaml``):
    selected junction, so selected junctions keep all their approaches and their
    original signal programs stay valid. Traffic lights left on the border of
    the crop (approaches cut off) are turned into plain junctions, and only the
-   largest connected component is kept.
+   largest connected component is kept. Traffic lights whose program has a
+   single distinct green state (no decision can change anything) are turned
+   into plain junctions too.
 3. Load LuST's static programs (``tll.static.xml``) as the only programs of the
    network (fixed-time baseline) and move LuST's original actuated programs to
    a separate additional file (actuated baseline; their green phases get
@@ -40,7 +42,7 @@ import sumolib
 from trafficmarl.scenarios.demand import rate_multiplier
 from trafficmarl.scenarios.spec import SPLITS, Manifest, output_dir, route_file_name, write_sumocfg
 from trafficmarl.scenarios.synthetic import profile_seed
-from trafficmarl.scenarios.tls import ACTUATED_FILE, split_tls_programs
+from trafficmarl.scenarios.tls import ACTUATED_FILE, is_green_phase, split_tls_programs
 from trafficmarl.utils import paths, sumo
 from trafficmarl.utils.logging_utils import get_logger
 
@@ -88,6 +90,24 @@ def select_crop(
         if tl not in selected and any(n.getID() in kept_nodes for n in _tls_nodes(tl))
     ]
     return sorted(tl.getID() for tl in selected), keep, sorted(border)
+
+
+def degenerate_signals(net_file: Path) -> list[str]:
+    """Traffic lights whose static program has fewer than two distinct green states.
+
+    Such a light (in LuST, pedestrian lights without their pedestrian phase)
+    shows the same movements green in every phase: no decision can change
+    anything, and its fixed program only inserts yellows without ever showing
+    red. These lights are removed (turned into plain junctions) for all methods.
+    """
+    result = []
+    for tl in ET.parse(net_file).getroot().iter("tlLogic"):
+        if tl.get("type") != "static":
+            continue
+        greens = {p.get("state") for p in tl.iter("phase") if is_green_phase(p.get("state", ""))}
+        if len(greens) < 2:
+            result.append(tl.get("id"))
+    return sorted(set(result))
 
 
 def crop_network(
@@ -229,6 +249,12 @@ def build(scenario_cfg: dict[str, Any]) -> Manifest:
     selected, keep, border = select_crop(full_net, crop_cfg)
     net_file = f"{name}.net.xml"
     crop_network(full_net_path, lust_dir / src["tls_static_file"], keep, border, root / net_file)
+    degenerate = degenerate_signals(root / net_file)
+    if degenerate:
+        crop_network(
+            full_net_path, lust_dir / src["tls_static_file"], keep, border + degenerate,
+            root / net_file,
+        )  # fmt: skip
     n_actuated = split_tls_programs(root / net_file, root / ACTUATED_FILE)
     crop = sumolib.net.readNet(str(root / net_file), withPrograms=True)
     tls_ids = sorted(tl.getID() for tl in crop.getTrafficLights())
@@ -255,6 +281,7 @@ def build(scenario_cfg: dict[str, Any]) -> Manifest:
             "tls_in_square": len(selected),
             "tls_dropped_disconnected": sorted(set(selected) - set(tls_ids)),
             "tls_unset_on_border": border,
+            "tls_unset_degenerate": degenerate,
             "edges": len(crop.getEdges()),
             "actuated_programs": n_actuated,
             "route_source": src["route_files"],

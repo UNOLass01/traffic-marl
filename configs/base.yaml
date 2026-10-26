@@ -17,6 +17,26 @@ simulation:
   drain_time: 1800         # s simulated after the last insertion (fixed episode length)
   gridlock_window: 600     # s without any arrival while vehicles remain = gridlock
 
+# Markov decision process of the learning agents (docs/mdp.md). Phase-duration
+# constraints also apply to every baseline (D13).
+env:
+  profile: medium          # demand profile used for training and evaluation
+  delta_time: 5            # s between two decisions
+  min_green: 5             # s
+  max_green: 50            # s
+  max_red: null            # s; optional fairness constraint, off by default (D19)
+  observation:
+    type: local            # local | extended (adds 4 neighbour slots)
+    max_distance: 200      # m of approach observed upstream of the stop line (D12)
+    agent_id: false        # append a one-hot agent id (ablation; breaks transfer)
+  reward:
+    type: local            # local | neighborhood | global
+    measure: waiting       # waiting | queue | pressure
+    waiting_scale: 100     # s; waiting-time change is divided by this
+    switch_penalty: 0.1    # subtracted when the agent changes phase
+    alpha: 0.5             # weight of the neighbours' mean in `neighborhood`
+    gridlock_penalty: auto # terminal penalty on gridlock; auto = bound x remaining steps
+
 metrics:
   teleport_flag_threshold: 0.01   # runs above this teleport rate are flagged
 

@@ -2,6 +2,8 @@
 # morning peak. Procedure: src/trafficmarl/scenarios/lust.py; figure of the
 # selected area: docs/figures/lust_crop.png.
 scenario:
+  signals:
+    yellow_time: 4             # s, as in the static programs (shared by all methods)
   name: lust
   kind: lust
   output_dir: networks/lust/lust_center

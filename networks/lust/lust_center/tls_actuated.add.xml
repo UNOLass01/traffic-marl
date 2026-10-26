@@ -54,12 +54,6 @@
         <phase duration="10" state="rrGrrrrrrrGrrrrr" minDur="5" maxDur="50" />
         <phase duration="4" state="rryrrrrrrryrrrrr" />
     </tlLogic>
-    <tlLogic id="-22774" type="actuated" programID="actuated" offset="0">
-        <phase duration="30" state="GGGGGG" minDur="5" maxDur="50" />
-        <phase duration="4" state="yyyyyy" />
-        <phase duration="30" state="GGGGGG" minDur="5" maxDur="50" />
-        <phase duration="4" state="yyyyyy" />
-    </tlLogic>
     <tlLogic id="-24852" type="actuated" programID="actuated" offset="0">
         <phase duration="30" state="GGGgrrrGGGggrrr" minDur="5" maxDur="50" />
         <phase duration="4" state="yyygrrryyyggrrr" />

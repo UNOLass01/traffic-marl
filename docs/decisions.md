@@ -211,3 +211,61 @@ Each entry states the decision, the reason, and its impact on the code and the r
   socket TraCI on this machine.
 - **Impact:** training throughput; libsumo allows one simulation per process, so parallel
   simulations (validation, RLlib env runners) run in separate processes.
+
+### D19 — 2026-10-26 — Maximum red not enforced by default
+- **Decision:** no maximum-red constraint by default (`env.max_red: null`). The longest red of
+  every phase is measured and reported as a metric for every method. Enforcement remains a config
+  option: when set, only phases that would otherwise exceed it are valid.
+- **Reason:** the actuated baseline's cycle can reach about 212 s (4 x 50 s greens plus yellows),
+  so a fixed max-red (e.g. 120 s) would break "identical constraints for every method".
+- **Impact:** starvation is visible in the results instead of being prevented by construction.
+
+### D20 — 2026-10-26 — Intersection identity in the observation
+- **Decision:** the observation carries intersection-type features (number of green phases as a
+  one-hot, number of stop lanes / max) by default. A one-hot agent id is an optional flag
+  (`env.observation.agent_id`) for an ablation.
+- **Reason:** type features let one shared policy handle heterogeneous LuST intersections while
+  staying transferable across networks (grid3x3 -> grid5x5); an agent id ties the policy to one
+  network.
+- **Impact:** local observation of 47 values (75 extended), identical for every scenario.
+
+### D21 — 2026-10-26 — Reward composition and episode ends
+- **Decision:**
+  - The switch penalty stays individual in every cooperation scheme
+    (`neighborhood: t_i + alpha * mean_j t_j - p_i`, `global: mean_j t_j - p_i`); the global
+    scheme uses the mean, not the sum, so its scale does not depend on network size.
+  - Episode ends follow Gymnasium/PettingZoo semantics: `terminated` when the network is empty
+    after the insertion period or when gridlock is detected; `truncated` at the time limit.
+  - Gridlock gives every agent a terminal penalty, flagged in `info`. Default `auto`: an upper
+    bound of one step's reward (every vehicle that fits on the approach waits the whole step,
+    times 1 + alpha for the neighbourhood scheme) multiplied by the decision steps left before
+    the time limit.
+- **Reason:** sharing the penalty would blur credit for an agent's own switching; correct
+  terminated/truncated flags are required for value bootstrapping; without a terminal penalty, a
+  gridlock would end a stream of negative rewards and could look attractive.
+- **Impact:** tests cover all three ends. The `auto` penalty is large (about 12,800 for `single`
+  at the start of an episode) compared with per-step rewards (std 3-8); its effect on value
+  learning will be watched in Phase 5.
+
+### D22 — 2026-10-26 — Degenerate LuST traffic light removed (supersedes the count in D8)
+- **Finding:** LuST traffic light `-22774` has two green phases with the same state (`GGGGGG`,
+  every movement green), separated by yellows: probably a pedestrian light without its pedestrian
+  phase. Under SUMO-RL no decision changes anything (the "yellow" between identical greens has no
+  `y`); under the fixed program it inserts yellows every 31 s without ever showing red.
+- **Decision:** the crop turns every traffic light whose static program has fewer than two
+  distinct green states into a plain (priority) junction, for all methods. LuST now has **13**
+  traffic lights.
+- **Impact:** LuST is somewhat more congested because the junction now has right-of-way rules
+  (medium/train mean waiting 34.5 s -> 60.0 s, peak/train teleports 0.92 %); all 10 LuST route
+  files still pass validation.
+
+### D23 — 2026-10-26 — Neighbour slots and communication volume
+- **Decision:** neighbours are assigned to four compass slots (N, E, S, W) by the bearing from the
+  intersection to the neighbour (90 degree sectors). Several neighbours in one slot, or more than
+  four neighbours, are averaged. The topology summary reports how often this happens and the
+  number of floats exchanged per decision step in the extended observation.
+- **Reason:** a fixed-size observation is needed for parameter sharing; bearing slots keep the
+  spatial meaning of each slot on irregular networks.
+- **Impact:** exact on grids; on LuST 12 slots (10 of 13 agents) aggregate several neighbours.
+  Floats per decision step: corridor 36, grid3x3 144, grid5x5 480, lust 324 (6 floats per
+  message), for comparison with federated aggregation in Phase 9.

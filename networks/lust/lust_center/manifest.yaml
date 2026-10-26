@@ -7,7 +7,6 @@ tls_ids:
 - '-17472'
 - '-20740'
 - '-21042'
-- '-22774'
 - '-24852'
 - '-28504'
 - '-29558'
@@ -70,6 +69,7 @@ notes:
   tls_dropped_disconnected:
   - '-13968'
   - '-16502'
+  - '-22774'
   - '-7124'
   - '-8224'
   tls_unset_on_border:
@@ -77,8 +77,10 @@ notes:
   - '-5236'
   - '-824'
   - '-8670'
+  tls_unset_degenerate:
+  - '-22774'
   edges: 149
-  actuated_programs: 14
+  actuated_programs: 13
   route_source:
   - DUERoutes/local.static.0.rou.xml
   - DUERoutes/local.static.1.rou.xml

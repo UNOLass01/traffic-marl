@@ -16,7 +16,7 @@ extension studies parameter sharing without raw traffic data.
 |---|---|---|
 | 0 | Project skeleton (package, config, seeding, logging, CLI, tests) | done |
 | 1 | Scenarios and demand profiles | done |
-| 2 | Environment factory, observations, rewards | — |
+| 2 | Environment factory, observations, rewards | in review |
 | 3 | Metrics | — |
 | 4 | Baselines | — |
 | 5 | Independent MARL (IPPO) | — |
@@ -89,7 +89,7 @@ python -m trafficmarl config configs/base.yaml experiment.name=demo   # print a 
 | `corridor` | 4 | east-west arterial (arterial demand x3) |
 | `grid3x3` | 9 | main development grid |
 | `grid5x5` | 25 | scalability (Manhattan-type grid) |
-| `lust` | 14 | Luxembourg city centre cropped from LuST, morning peak |
+| `lust` | 13 | Luxembourg city centre cropped from LuST, morning peak |
 
 Each scenario has `low`, `medium`, `high`, non-stationary `peak` and `saturated` (x2, robustness
 study) demand, with separate train and eval route files (disjoint seeds, or disjoint time windows
@@ -106,6 +106,26 @@ sumo-gui -c networks/grid/grid3x3/grid3x3.sumocfg   # inspect (unset LIBSUMO_AS_
 Each built scenario has a `manifest.yaml` listing its network, route files, traffic-light ids
 and an additional file (`tls_actuated.add.xml`) that switches every light to actuated control. Design choices, demand calibration and the LuST cropping procedure are documented
 (in French) in [docs/scenarios.md](docs/scenarios.md).
+
+### Environment
+
+One agent per traffic light, as a PettingZoo `ParallelEnv` built on SUMO-RL
+(`trafficmarl.envs.make_env`). Each observation is `{"observations": ..., "action_mask": ...}`;
+the mask enforces minimum/maximum green and hides missing phases. Rewards can be local,
+neighbourhood or global. The MDP is specified (in French) in [docs/mdp.md](docs/mdp.md).
+
+```bash
+python -m trafficmarl env rollout grid3x3 --policy random    # one episode, reward-component stats
+python -m trafficmarl env rollout lust --obs extended --reward neighborhood
+python -m trafficmarl env topology all                       # approaches, neighbours, message volume
+```
+
+```python
+from trafficmarl.envs.factory import experiment_config, make_env
+
+env = make_env(experiment_config("grid3x3"), split="train", seed=0)
+obs, infos = env.reset(seed=0)
+```
 
 ### Configuration
 

@@ -1750,12 +1750,6 @@
         <phase duration="6" state="rrGrrrrrrrGrrrrr" />
         <phase duration="4" state="rryrrrrrrryrrrrr" />
     </tlLogic>
-    <tlLogic id="-22774" type="static" programID="1" offset="0">
-        <phase duration="31" state="GGGGGG" />
-        <phase duration="4" state="yyyyyy" />
-        <phase duration="31" state="GGGGGG" />
-        <phase duration="4" state="yyyyyy" />
-    </tlLogic>
     <tlLogic id="-24852" type="static" programID="1" offset="0">
         <phase duration="31" state="GGGgrrrGGGggrrr" />
         <phase duration="4" state="yyygrrryyyggrrr" />
@@ -2528,9 +2522,9 @@
     <connection from="--32924#2" to="--32924#1" fromLane="0" toLane="0" via=":-24812_6_0" dir="s" state="M" />
     <connection from="--32924#2" to="--32924#1" fromLane="1" toLane="1" via=":-24812_6_1" dir="s" state="M" />
     <connection from="--32924#2" to="--32924#1" fromLane="2" toLane="2" via=":-24812_6_2" dir="s" state="M" />
-    <connection from="--32924#3" to="--32924#2" fromLane="0" toLane="0" via=":-22774_3_0" tl="-22774" linkIndex="3" dir="s" state="O" />
-    <connection from="--32924#3" to="--32924#2" fromLane="1" toLane="1" via=":-22774_3_1" tl="-22774" linkIndex="4" dir="s" state="O" />
-    <connection from="--32924#3" to="--32924#2" fromLane="2" toLane="2" via=":-22774_3_2" tl="-22774" linkIndex="5" dir="s" state="O" />
+    <connection from="--32924#3" to="--32924#2" fromLane="0" toLane="0" via=":-22774_3_0" dir="s" state="M" />
+    <connection from="--32924#3" to="--32924#2" fromLane="1" toLane="1" via=":-22774_3_1" dir="s" state="M" />
+    <connection from="--32924#3" to="--32924#2" fromLane="2" toLane="2" via=":-22774_3_2" dir="s" state="M" />
     <connection from="--32924#4" to="--32924#3" fromLane="0" toLane="0" via=":-16408_7_0" dir="s" state="M" />
     <connection from="--32924#4" to="--32924#3" fromLane="1" toLane="1" via=":-16408_7_1" dir="s" state="M" />
     <connection from="--32924#4" to="--32924#3" fromLane="2" toLane="2" via=":-16408_7_2" dir="s" state="M" />
@@ -2754,9 +2748,9 @@
     <connection from="-32924#1" to="-32924#2" fromLane="0" toLane="0" via=":-24812_3_0" dir="s" state="M" />
     <connection from="-32924#1" to="-32924#2" fromLane="1" toLane="1" via=":-24812_3_1" dir="s" state="M" />
     <connection from="-32924#1" to="-32924#2" fromLane="2" toLane="2" via=":-24812_3_2" dir="s" state="M" />
-    <connection from="-32924#2" to="-32924#3" fromLane="0" toLane="0" via=":-22774_0_0" tl="-22774" linkIndex="0" dir="s" state="O" />
-    <connection from="-32924#2" to="-32924#3" fromLane="1" toLane="1" via=":-22774_0_1" tl="-22774" linkIndex="1" dir="s" state="O" />
-    <connection from="-32924#2" to="-32924#3" fromLane="2" toLane="2" via=":-22774_0_2" tl="-22774" linkIndex="2" dir="s" state="O" />
+    <connection from="-32924#2" to="-32924#3" fromLane="0" toLane="0" via=":-22774_0_0" dir="s" state="M" />
+    <connection from="-32924#2" to="-32924#3" fromLane="1" toLane="1" via=":-22774_0_1" dir="s" state="M" />
+    <connection from="-32924#2" to="-32924#3" fromLane="2" toLane="2" via=":-22774_0_2" dir="s" state="M" />
     <connection from="-32924#3" to="--32822" fromLane="0" toLane="0" via=":-16408_3_0" dir="r" state="M" />
     <connection from="-32924#3" to="-32924#4" fromLane="0" toLane="0" via=":-16408_4_0" dir="s" state="M" />
     <connection from="-32924#3" to="-32924#4" fromLane="1" toLane="1" via=":-16408_4_1" dir="s" state="M" />

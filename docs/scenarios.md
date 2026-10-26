@@ -38,7 +38,7 @@ Chaque scénario construit contient :
 | `corridor` | 4 | artère est-ouest, 4 carrefours | coordination en « onde verte » |
 | `grid3x3` | 9 | grille 3 × 3 | scénario principal de développement |
 | `grid5x5` | 25 | grille 5 × 5 (type Manhattan) | passage à l'échelle |
-| `lust` | 14 | centre-ville de Luxembourg (LuST) | scénario urbain réaliste |
+| `lust` | 13 | centre-ville de Luxembourg (LuST) | scénario urbain réaliste |
 
 ## 2. Réseaux synthétiques (`single`, `corridor`, `grid3x3`, `grid5x5`)
 
@@ -146,7 +146,10 @@ Procédure (`networks/lust/crop_lust.py`, paramètres dans `configs/scenarios/lu
    leurs plans de feux restent valides. Les 4 feux situés en bordure, dont certaines approches
    sont coupées, deviennent des carrefours sans feux. Seule la plus grande composante connexe
    est gardée. Un groupe de 4 feux, relié au reste uniquement par l'extérieur du carré, est
-   ainsi écarté : **il reste 14 carrefours à feux et 149 tronçons**.
+   ainsi écarté. Enfin, un feu dont toutes les phases donnent le vert aux mêmes mouvements
+   (`-22774`, probablement un feu piéton privé de sa phase piétons) est transformé en carrefour
+   sans feux : aucune décision ne pouvait y changer quoi que ce soit (décision D22). **Il reste
+   13 carrefours à feux et 149 tronçons.**
 3. **Plans de feux** : nous gardons les plans fixes de LuST (`tll.static.xml`) dans le réseau, ce
    qui donne la ligne de base « plan fixe ». Les plans actionnés d'origine de LuST sont placés
    dans un fichier séparé (`tls_actuated.add.xml`) pour la ligne de base « actionnée ». Ces plans
@@ -186,10 +189,10 @@ réaliste.
 *Figure : réseau LuST autour de la zone découpée (gris), tronçons conservés (bleu), carrefours à
 feux contrôlés par les agents (rouge), carré de sélection (pointillés).*
 
-Les carrefours LuST sont hétérogènes : de 2 à 4 phases vertes, et des observations de taille 15
-à 29 avec les observations par défaut de SUMO-RL. L'environnement (phase 2) utilisera donc du
-remplissage par zéros (*padding*), un masquage des actions invalides et un identifiant de
-carrefour dans l'observation.
+Les carrefours LuST sont hétérogènes : de 2 à 4 phases vertes et de 6 à 12 voies d'arrêt.
+L'environnement leur donne la même observation de taille fixe que les réseaux synthétiques, par
+remplissage par zéros (*padding*), masquage des actions inexistantes et caractéristiques de type
+de carrefour (voir `docs/mdp.md`).
 
 ## 5. Validation
 
@@ -234,11 +237,11 @@ Résultats (moyenne sur les fichiers d'entraînement et d'évaluation de chaque 
 | `grid5x5` | peak | fixe | 5/5 | 14173 | 92,1 | 213,1 | 0,00 % | – |
 | `grid5x5` | saturated | actionné | 5/5 | 21520 | 135,5 | 269,8 | 0,00 % | 5/5 |
 | `grid5x5` | stress (robustesse seule) | actionné | 5/5 | 24017 | 254,6 | 403,7 | 1,09 % | – |
-| `lust` | low | fixe | 2/2 | 2594 | 27,6 | 116,8 | 0,00 % | – |
-| `lust` | medium | fixe | 2/2 | 4349 | 36,8 | 134,8 | 0,00 % | – |
-| `lust` | high | fixe | 2/2 | 5676 | 110,7 | 265,0 | 0,10 % | – |
-| `lust` | peak | fixe | 2/2 | 4900 | 83,7 | 227,7 | 0,11 % | – |
-| `lust` | saturated | actionné | 2/2 | 6559 | 170,3 | 341,4 | 0,31 % | 1/2 |
+| `lust` | low | fixe | 2/2 | 2594 | 27,5 | 116,7 | 0,00 % | – |
+| `lust` | medium | fixe | 2/2 | 4349 | 50,8 | 154,6 | 0,29 % | – |
+| `lust` | high | fixe | 2/2 | 5676 | 115,7 | 267,7 | 0,47 % | – |
+| `lust` | peak | fixe | 2/2 | 4900 | 109,9 | 253,4 | 0,92 % | – |
+| `lust` | saturated | actionné | 2/2 | 6559 | 156,0 | 323,4 | 0,16 % | 0/2 |
 
 Total : 115/115 fichiers de routes validés.
 
