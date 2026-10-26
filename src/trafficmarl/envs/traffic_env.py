@@ -34,6 +34,9 @@ from trafficmarl.envs.constraints import PhaseConstraints
 from trafficmarl.envs.measure import ApproachMeter
 from trafficmarl.envs.topology import build_topology
 from trafficmarl.scenarios.spec import Manifest
+from trafficmarl.utils.logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 END_TIME_LIMIT = "time_limit"
 END_EMPTY = "network_empty"
@@ -101,6 +104,7 @@ class TrafficSignalEnv(ParallelEnv):
         yellow_time: int,
         seed: int = 0,
         extra_additional_files: list[str] | None = None,
+        reward_scale: dict[str, float] | None = None,
     ):
         self.manifest = manifest
         self.route_files = manifest.route_files(profile, split)
@@ -141,6 +145,8 @@ class TrafficSignalEnv(ParallelEnv):
             max_red=env_cfg.get("max_red"),
         )
         self._penalty_bound = self._per_step_reward_bound()
+        self._penalty_cap = self._gridlock_penalty_cap(reward_scale or {})
+        self.gridlock_count = 0
 
         additional = [str(manifest.path(f)) for f in manifest.additional_files]
         additional += list(extra_additional_files or [])
@@ -264,18 +270,36 @@ class TrafficSignalEnv(ParallelEnv):
         )
         return max(bounds) * factor
 
+    def _gridlock_penalty_cap(self, reward_scale: dict[str, float]) -> float | None:
+        """Cap of the ``auto`` penalty: ``gridlock_penalty_cap_std`` x the per-step std of
+        the traffic term, measured on the scenario's random-policy rollout (D24)."""
+        k = self.reward_cfg.get("gridlock_penalty_cap_std")
+        if k is None:
+            return None
+        measure = self.reward_cfg["measure"]
+        if measure not in reward_scale:
+            raise ValueError(
+                f"{self.manifest.name}: no measured reward scale for '{measure}'; run "
+                "`python -m trafficmarl env reward-scale` and record it in the scenario config "
+                "(scenario.reward_scale), or set env.reward.gridlock_penalty_cap_std: null"
+            )
+        return float(k) * float(reward_scale[measure])
+
     def gridlock_penalty(self) -> float:
         """Terminal penalty when an episode ends in gridlock.
 
         ``auto``: the per-step bound times the decision steps left before the
-        time limit, so ending the episode by gridlock always costs at least as
-        much as any reward the remaining steps could have produced.
+        time limit, so ending the episode by gridlock costs at least as much as
+        any reward the remaining steps could have produced; capped at
+        ``gridlock_penalty_cap_std`` per-step standard deviations (D24) so that
+        a single terminal value does not dwarf every other reward.
         """
         value = self.reward_cfg.get("gridlock_penalty", "auto")
-        if value == "auto":
-            remaining = math.ceil((self.time_limit - self._now()) / self.delta_time)
-            return self._penalty_bound * max(remaining, 1)
-        return float(value)
+        if value != "auto":
+            return float(value)
+        remaining = math.ceil((self.time_limit - self._now()) / self.delta_time)
+        penalty = self._penalty_bound * max(remaining, 1)
+        return min(penalty, self._penalty_cap) if self._penalty_cap is not None else penalty
 
     # ------------------------------------------------------------ PettingZoo
     def observation_space(self, agent: str) -> spaces.Dict:
@@ -336,9 +360,16 @@ class TrafficSignalEnv(ParallelEnv):
             float(self.reward_cfg["alpha"]),
         )
         end_reason = self._end_reason(dones["__all__"])
+        terminal = 0.0
         if end_reason == END_GRIDLOCK:
             terminal = self.gridlock_penalty()
             rewards = {a: r - terminal for a, r in rewards.items()}
+            self.gridlock_count += 1
+            logger.warning(
+                "gridlock: scenario=%s route=%s t=%.0fs episode=%d penalty=%.1f (gridlocks: %d)",
+                self.manifest.name, self.route_file, self._now(), self._episode, terminal,
+                self.gridlock_count,
+            )  # fmt: skip
         for a in self.agents:
             self.log.traffic[a].append(traffic[a])
             self.log.penalty[a].append(penalty[a])
@@ -360,6 +391,7 @@ class TrafficSignalEnv(ParallelEnv):
         }
         if end_reason is not None:
             summary = self.episode_summary(end_reason)
+            summary["gridlock_penalty"] = terminal
             for a in self.agents:
                 infos[a]["episode"] = summary
             self.agents = []

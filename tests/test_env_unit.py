@@ -217,3 +217,10 @@ def test_neighbour_graph_symmetric_on_lust():
 def test_shorter_max_distance_shortens_approaches():
     short = _topology("grid3x3", max_distance=50.0)
     assert all(v <= 50.0 + 1e-6 for t in short.values() for v in t.approach_length.values())
+
+
+@pytest.mark.parametrize("name", ["single", "corridor", "grid3x3", "grid5x5", "lust"])
+def test_reward_scale_recorded_for_every_measure(name):
+    scale = load_scenario_config(name)["reward_scale"]
+    assert set(scale) == set(features.REWARD_MEASURES)
+    assert all(v > 0 for v in scale.values())

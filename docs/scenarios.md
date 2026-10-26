@@ -245,6 +245,23 @@ Résultats (moyenne sur les fichiers d'entraînement et d'évaluation de chaque 
 
 Total : 115/115 fichiers de routes validés.
 
+**Évolution de LuST depuis la phase 1.** La version validée en phase 1 comptait 14 feux. Le
+feu `-22774`, dont toutes les phases donnaient le vert aux mêmes mouvements, a depuis été
+transformé en carrefour sans feux (décision D22). Ce carrefour applique désormais des règles de
+priorité, ce qui rend la zone un peu plus congestionnée. Valeurs moyennes, entraînement et
+évaluation confondus :
+
+| Profil (plans) | Attente moy. phase 1 → actuelle (s) | Téléportations max phase 1 → actuelle |
+|---|---|---|
+| low (fixe) | 27,6 → 27,5 | 0,00 % → 0,00 % |
+| medium (fixe) | 36,8 → 50,8 | 0,00 % → 0,29 % |
+| high (fixe) | 110,7 → 115,7 | 0,10 % → 0,47 % |
+| peak (fixe) | 83,7 → 109,9 | 0,11 % → 0,92 % |
+| saturated ×1,5 (actionné) | 170,3 → 156,0 | 0,31 % → 0,16 % |
+
+Tous les fichiers LuST restent sous le seuil de 1 % de téléportations. Le fichier `peak` de
+l'entraînement en est toutefois proche (0,92 %).
+
 *Les lignes `saturated` et `stress` sont simulées avec les plans **actionnés** : elles ne sont
 pas comparables aux lignes simulées avec les plans fixes. Le corridor attend par exemple moins
 en `saturated` (actionné) qu'en `high` (plan fixe).*

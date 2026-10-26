@@ -193,6 +193,32 @@ def _cmd_env_topology(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_env_reward_scale(args: argparse.Namespace) -> int:
+    """Per-step std of each reward measure under a random policy (gridlock-penalty cap)."""
+    import json
+    import multiprocessing
+
+    from trafficmarl.envs.features import REWARD_MEASURES
+    from trafficmarl.envs.rollout import reward_scale_job
+    from trafficmarl.scenarios.validate import default_workers
+
+    jobs = [(name, m) for name in _scenario_names(args.names) for m in REWARD_MEASURES]
+    ctx = multiprocessing.get_context("spawn")
+    with ctx.Pool(args.workers or default_workers(), maxtasksperchild=1) as pool:
+        rows = pool.starmap(reward_scale_job, jobs)
+    print(f"{'scenario':>9} {'measure':>9} {'std':>9} {'min':>9} {'max':>9}  end")
+    for r in rows:
+        print(
+            f"{r['scenario']:>9} {r['measure']:>9} {r['std']:9.4f} {r['min']:9.3f} "
+            f"{r['max']:9.3f}  {r['end_reason']}"
+        )
+    out = paths.RESULTS_DIR / "env_reward_scale" / "reward_scale.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+    print(f"saved: {out}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="trafficmarl",
@@ -250,6 +276,12 @@ def build_parser() -> argparse.ArgumentParser:
     topology = env_sub.add_parser("topology", help="topology summary per scenario")
     topology.add_argument("names", nargs="+", help="scenario names or 'all'")
     topology.set_defaults(func=_cmd_env_topology)
+    scale = env_sub.add_parser(
+        "reward-scale", help="per-step reward std under a random policy (gridlock-penalty cap)"
+    )
+    scale.add_argument("names", nargs="+", help="scenario names or 'all'")
+    scale.add_argument("--workers", type=int, default=None)
+    scale.set_defaults(func=_cmd_env_reward_scale)
     return parser
 
 

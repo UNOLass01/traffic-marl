@@ -138,6 +138,21 @@ def test_gridlock_terminates_with_penalty():
     assert out["reward"] == pytest.approx(
         out["step_reward_without_terminal"] - out["expected_penalty"]
     )
+    # The default cap (100 x the measured per-step std) is what limits the penalty here.
+    scale = experiment_config("single")["scenario"]["reward_scale"]["waiting"]
+    assert out["expected_penalty"] == pytest.approx(100 * scale)
+
+
+def test_uncapped_penalty_exceeds_cap():
+    overrides = {
+        "simulation": {"gridlock_window": 5},
+        "env": {"reward": {"gridlock_penalty_cap_std": None}},
+    }
+    out = _in_process(end_job, "single", "medium", overrides)
+    assert (
+        out["expected_penalty"]
+        > 100 * experiment_config("single")["scenario"]["reward_scale"]["waiting"]
+    )
 
 
 def test_time_limit_truncates_without_penalty():

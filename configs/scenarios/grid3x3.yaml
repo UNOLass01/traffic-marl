@@ -1,5 +1,9 @@
 defaults: [_synthetic_defaults.yaml]
 scenario:
+  # Per-step std of the traffic reward term under a random policy (medium demand,
+  # eval file); sets the gridlock-penalty cap (docs/decisions.md D24).
+  # Regenerate: python -m trafficmarl env reward-scale grid3x3
+  reward_scale: {waiting: 8.2852, queue: 1.16, pressure: 1.3321}
   name: grid3x3
   output_dir: networks/grid/grid3x3
   network: {nx: 3, ny: 3}

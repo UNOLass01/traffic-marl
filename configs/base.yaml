@@ -36,6 +36,7 @@ env:
     switch_penalty: 0.1    # subtracted when the agent changes phase
     alpha: 0.5             # weight of the neighbours' mean in `neighborhood`
     gridlock_penalty: auto # terminal penalty on gridlock; auto = bound x remaining steps
+    gridlock_penalty_cap_std: 100  # cap of `auto`, in per-step std of the traffic term (D24)
 
 metrics:
   teleport_flag_threshold: 0.01   # runs above this teleport rate are flagged

@@ -2,6 +2,10 @@
 # morning peak. Procedure: src/trafficmarl/scenarios/lust.py; figure of the
 # selected area: docs/figures/lust_crop.png.
 scenario:
+  # Per-step std of the traffic reward term under a random policy (medium demand,
+  # eval file); sets the gridlock-penalty cap (docs/decisions.md D24).
+  # Regenerate: python -m trafficmarl env reward-scale lust
+  reward_scale: {waiting: 2.3252, queue: 0.5239, pressure: 1.0588}
   signals:
     yellow_time: 4             # s, as in the static programs (shared by all methods)
   name: lust

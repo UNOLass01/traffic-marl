@@ -40,4 +40,5 @@ def make_env(
         yellow_time=int(scenario["signals"]["yellow_time"]),
         seed=seed,
         extra_additional_files=extra_additional_files,
+        reward_scale=scenario.get("reward_scale"),
     )

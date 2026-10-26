@@ -141,3 +141,30 @@ def green_intervals(
             if state in greens
         ]
     return result
+
+
+def reward_scale_job(scenario: str, measure: str, profile: str = "medium") -> dict[str, Any]:
+    """Std of the per-step traffic term under a random policy (calibrates the gridlock cap, D24).
+
+    Runs in its own process (libsumo: one simulation per process).
+    """
+    from trafficmarl.envs.factory import experiment_config
+
+    overrides = {
+        "env": {
+            "profile": profile,
+            "reward": {"measure": measure, "gridlock_penalty_cap_std": None},
+        }
+    }
+    result = run_rollout(experiment_config(scenario, overrides), policy="random", split="eval")
+    traffic = result["reward_components_all"]["traffic"]
+    return {
+        "scenario": scenario,
+        "measure": measure,
+        "profile": profile,
+        "std": float(traffic["std"]),
+        "min": float(traffic["min"]),
+        "max": float(traffic["max"]),
+        "end_reason": result["episode"]["end_reason"],
+        "steps": result["steps"],
+    }

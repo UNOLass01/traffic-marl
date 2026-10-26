@@ -223,6 +223,12 @@ suppose que tous les véhicules qui tiennent sur l'approche attendent pendant to
 α) en schéma de voisinage). Elle dépasse donc toute récompense que les pas restants auraient pu
 produire.
 
+Cette borne étant très grande (environ 12 800 pour `single` en début d'épisode, contre un
+écart-type de 2 à 10 par pas), la pénalité est **plafonnée** à 100 fois l'écart-type par pas du
+terme de trafic. Cet écart-type est mesuré pour chaque scénario et chaque type de récompense, sous
+politique aléatoire. Par exemple, le plafond vaut 828,5 pour `grid3x3` avec la récompense
+`waiting` (décision D24). Chaque fin d'épisode par blocage est journalisée et comptée.
+
 Chaque épisode d'entraînement tire au sort un fichier de routes d'entraînement et une graine
 SUMO, à partir de la graine de l'expérience. L'évaluation parcourt les fichiers d'évaluation
 dans un ordre fixe.

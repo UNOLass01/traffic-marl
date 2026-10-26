@@ -269,3 +269,29 @@ Each entry states the decision, the reason, and its impact on the code and the r
 - **Impact:** exact on grids; on LuST 12 slots (10 of 13 agents) aggregate several neighbours.
   Floats per decision step: corridor 36, grid3x3 144, grid5x5 480, lust 324 (6 floats per
   message), for comparison with federated aggregation in Phase 9.
+
+### D24 — 2026-10-26 — Gridlock penalty capped in units of the per-step reward std (refines D21)
+- **Decision:** the `auto` gridlock penalty (per-step bound x remaining steps) is capped at
+  `env.reward.gridlock_penalty_cap_std` (default **100**) times the per-step standard deviation of
+  the traffic term, measured per scenario and per reward measure under a random policy (medium
+  demand, eval file; `python -m trafficmarl env reward-scale all`). The measured values are stored
+  in each scenario config (`scenario.reward_scale`). Every gridlock termination is logged (warning
+  with scenario, route file, time, episode and penalty) and counted, so its frequency during
+  training is visible.
+
+  | Scenario | std waiting | cap (waiting) | std queue | cap (queue) | std pressure | cap (pressure) |
+  |---|---|---|---|---|---|---|
+  | single | 6.296 | 629.6 | 1.728 | 172.8 | 2.076 | 207.6 |
+  | corridor | 5.784 | 578.4 | 0.662 | 66.2 | 0.740 | 74.0 |
+  | grid3x3 | 8.285 | 828.5 | 1.160 | 116.0 | 1.332 | 133.2 |
+  | grid5x5 | 9.692 | 969.2 | 0.902 | 90.2 | 1.049 | 104.9 |
+  | lust | 2.325 | 232.5 | 0.524 | 52.4 | 1.059 | 105.9 |
+
+- **Reason:** the uncapped bound (about 12,800 on `single` at the start of an episode) is three
+  orders of magnitude above typical rewards and would dominate value learning. The std is
+  measured per reward measure because `queue` and `pressure` rewards are about ten times smaller
+  than `waiting` ones; one cap for all would be meaningless.
+- **Impact:** the penalty no longer guarantees that a gridlock costs more than any possible
+  continuation, but it remains 100 typical steps of reward; the gridlock log shows whether
+  agents learn to cause gridlocks. Missing calibration raises an error instead of silently
+  falling back to the uncapped value.
