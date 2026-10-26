@@ -295,3 +295,51 @@ Each entry states the decision, the reason, and its impact on the code and the r
   continuation, but it remains 100 typical steps of reward; the gridlock log shows whether
   agents learn to cause gridlocks. Missing calibration raises an error instead of silently
   falling back to the uncapped value.
+
+### D25 — 2026-10-26 — Switch penalty c = 0.5 (supersedes the starting value 0.1 of Phase 2)
+- **Decision:** the default phase-switch penalty is **c = 0.5**, used for the Phase 5 reward check
+  and all main runs. c in {0.1, 0.5, 1.0} is a separate ablation.
+- **Reason:** with c = 0.1 the penalty was 0.3-1.4 % of the per-step std of the waiting term on
+  grid3x3 (Phase 2 reward-scale check), i.e. negligible; 0.5 brings it to roughly 2-7 %.
+- **Impact:** `env.reward.switch_penalty` in `configs/base.yaml`. The gridlock-penalty caps (D24)
+  depend only on the traffic term and are unchanged.
+
+### D26 — 2026-10-26 — Metric definitions (identical for every method)
+- **Decision:** every method is evaluated by the same per-episode code from SUMO's own outputs
+  (`trafficmarl.metrics`), on the held-out evaluation route files, with the same SUMO seeds for
+  every method (common random numbers). Delay metrics:
+  - **mean waiting time**: tripinfo `waitingTime` of **arrived** vehicles (main metric);
+  - **insertion delay**: `departDelay` of inserted vehicles; for vehicles due to depart but never
+    inserted, `end - intended departure` (read from the route file, since SUMO writes no
+    tripinfo for them);
+  - **unfinished vehicles**: still in the network at the end + never inserted;
+  - **total delay**: `departDelay + timeLoss` for arrived and unfinished vehicles, `end - intended
+    departure` for never-inserted ones, averaged over every vehicle due before the end (and summed
+    in vehicle-hours).
+
+  Also reported: throughput (arrived vehicles), travel time, time loss, CO2 (SUMO's HBEFA model),
+  time-averaged halting vehicles on the approaches and in the whole network, teleports and
+  teleport rate with a flag above 1 %, gridlock flag and end reason, and from SUMO's per-second
+  signal states: shortest/longest green, longest red per phase, phase changes per signal. For
+  explicit coordination: floats exchanged per decision step and per episode.
+- **Reason:** tripinfo waiting time alone ignores vehicles that never finish, so a controller
+  that blocks entries could look good; measuring signal timing from SUMO's states keeps program
+  baselines and agents comparable.
+- **Impact:** `results/<experiment>/<method>/<seed>/metrics.csv` (one row per evaluation route
+  file) with the resolved config and git commit.
+
+### D27 — 2026-10-26 — Statistical acceptance rule
+- **Decision:** a method "beats" a baseline (by default Webster fixed-time) when
+  1. its mean waiting time is lower with non-overlapping 95 % confidence intervals across seeds
+     (t-distribution), or Welch's t-test p < 0.05; and
+  2. it does not increase teleports or unfinished vehicles. An increase counts when the method's
+     mean is higher and the difference is not seed noise (one-sided Welch p < 0.05), or, when
+     both samples have zero variance, when the mean is higher at all.
+
+  Statistics use per-seed values (mean over the seed's evaluation route files), n = number of
+  seeds (at least 5 in reported results). Implemented in `trafficmarl.metrics.stats.compare`
+  and used by every comparison and analysis script.
+- **Reason:** a decision rule fixed in advance prevents cherry-picking; the "not seed noise"
+  reading of "no increase" avoids rejecting a method for one teleport in one seed when the
+  baseline also has teleports, while still rejecting any systematic increase.
+- **Impact:** the "no increase" interpretation is open to revision by the team.

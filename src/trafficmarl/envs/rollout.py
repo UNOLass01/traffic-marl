@@ -14,6 +14,7 @@ import numpy as np
 
 from trafficmarl.envs.factory import make_env
 from trafficmarl.envs.policies import make_policy
+from trafficmarl.metrics.episode import tls_states_additional
 
 
 def _stats(values: list[float]) -> dict[str, float]:
@@ -21,17 +22,6 @@ def _stats(values: list[float]) -> dict[str, float]:
     if arr.size == 0:
         return {"mean": 0.0, "std": 0.0, "min": 0.0, "max": 0.0}
     return {"mean": arr.mean(), "std": arr.std(), "min": arr.min(), "max": arr.max()}
-
-
-def tls_states_additional(tls_ids: list[str], directory: Path) -> tuple[Path, Path]:
-    """Additional file making SUMO write every signal's state each second (ground truth)."""
-    output = directory / "tls_states.xml"
-    events = "".join(
-        f'<timedEvent type="SaveTLSStates" source="{tls}" dest="{output}"/>' for tls in tls_ids
-    )
-    additional = directory / "tls_states.add.xml"
-    additional.write_text(f"<additional>{events}</additional>", encoding="utf-8")
-    return additional, output
 
 
 def run_rollout(

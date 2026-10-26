@@ -219,6 +219,30 @@ def _cmd_env_reward_scale(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_evaluate(args: argparse.Namespace) -> int:
+    """Evaluate one controller on the held-out route files of a scenario."""
+    from trafficmarl.envs.factory import experiment_config
+    from trafficmarl.metrics.evaluate import controller_spec, evaluate, per_seed
+    from trafficmarl.metrics.stats import summarize
+    from trafficmarl.utils.logging_utils import setup_logging
+
+    setup_logging("INFO")
+    config = experiment_config(args.scenario, {"env": {"profile": args.profile}})
+    config = apply_overrides(config, args.overrides)
+    experiment = args.experiment or f"eval_{args.scenario}_{args.profile}"
+    table = evaluate(
+        config, controller_spec(args.method), args.seeds, experiment=experiment,
+        workers=args.workers,
+    )  # fmt: skip
+    for metric in ("mean_waiting_time", "mean_total_delay", "throughput", "unfinished_total",
+                   "teleport_rate", "network_queue_mean", "co2_total_kg"):  # fmt: skip
+        st = summarize(per_seed(table, metric))
+        print(
+            f"{metric:>22}: {st.mean:10.3f}  95% CI [{st.ci_low:.3f}, {st.ci_high:.3f}]  n={st.n}"
+        )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="trafficmarl",
@@ -259,6 +283,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--output", default="results/scenario_validation/validation.csv", help="CSV report"
     )
     validate.set_defaults(func=_cmd_scenarios_validate)
+
+    evaluate = sub.add_parser("evaluate", help="evaluate a controller on held-out route files")
+    evaluate.add_argument("scenario")
+    evaluate.add_argument("--method", required=True, help="controller name (e.g. fixed_time)")
+    evaluate.add_argument("--profile", default="medium")
+    evaluate.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
+    evaluate.add_argument("--experiment", default=None, help="results/<experiment>/...")
+    evaluate.add_argument("--workers", type=int, default=None)
+    evaluate.add_argument("overrides", nargs="*", metavar="key.path=value")
+    evaluate.set_defaults(func=_cmd_evaluate)
 
     env = sub.add_parser("env", help="inspect and exercise the multi-agent environment")
     env_sub = env.add_subparsers(dest="env_command", metavar="<action>", required=True)

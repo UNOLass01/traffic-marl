@@ -16,8 +16,8 @@ extension studies parameter sharing without raw traffic data.
 |---|---|---|
 | 0 | Project skeleton (package, config, seeding, logging, CLI, tests) | done |
 | 1 | Scenarios and demand profiles | done |
-| 2 | Environment factory, observations, rewards | in review |
-| 3 | Metrics | — |
+| 2 | Environment factory, observations, rewards | done |
+| 3 | Metrics | done |
 | 4 | Baselines | — |
 | 5 | Independent MARL (IPPO) | — |
 | 6 | Coordinated variants | — |
@@ -126,6 +126,20 @@ from trafficmarl.envs.factory import experiment_config, make_env
 env = make_env(experiment_config("grid3x3"), split="train", seed=0)
 obs, infos = env.reset(seed=0)
 ```
+
+### Evaluation and metrics
+
+Every method is evaluated by the same code on the held-out route files, with the same SUMO
+seeds. Metrics include waiting time, total delay (counting unfinished and never-inserted
+vehicles), throughput, queues, CO2, teleports and signal timing; see
+[docs/metrics.md](docs/metrics.md) (in French) and decisions D26-D27.
+
+```bash
+python -m trafficmarl evaluate single --method fixed_time --profile medium --seeds 0 1 2 3 4
+python experiments/evaluate.py --config configs/experiments/single_medium_baselines.yaml --method actuated
+```
+
+Results: `results/<experiment>/<method>/<seed>/metrics.csv` + resolved config + git commit.
 
 ### Configuration
 

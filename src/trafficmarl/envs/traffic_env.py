@@ -66,17 +66,23 @@ class CountingSumoEnvironment(SumoEnvironment):
         self.teleports += sim.getStartingTeleportNumber()
 
 
-def count_green_phases(net_file: str) -> dict[str, int]:
-    """Green phases per traffic light, with the same rule SUMO-RL uses to build its actions."""
+def green_phase_states(net_file: str) -> dict[str, list[str]]:
+    """Green-phase states per traffic light, with the rule SUMO-RL uses to build its actions."""
     net = sumolib.net.readNet(net_file, withPrograms=True)
-    counts = {}
+    result = {}
     for tl in net.getTrafficLights():
         program = next(iter(tl.getPrograms().values()))
-        counts[tl.getID()] = sum(
-            "y" not in p.state and (p.state.count("r") + p.state.count("s") != len(p.state))
+        result[tl.getID()] = [
+            p.state
             for p in program.getPhases()
-        )
-    return counts
+            if "y" not in p.state and (p.state.count("r") + p.state.count("s") != len(p.state))
+        ]
+    return result
+
+
+def count_green_phases(net_file: str) -> dict[str, int]:
+    """Number of green phases (= actions) per traffic light."""
+    return {tls: len(states) for tls, states in green_phase_states(net_file).items()}
 
 
 @dataclass
@@ -104,8 +110,16 @@ class TrafficSignalEnv(ParallelEnv):
         yellow_time: int,
         seed: int = 0,
         extra_additional_files: list[str] | None = None,
+        extra_sumo_args: list[str] | None = None,
         reward_scale: dict[str, float] | None = None,
+        control: str = "agents",
     ):
+        if control not in ("agents", "program"):
+            raise ValueError(f"control must be 'agents' or 'program', got '{control}'")
+        # "program": SUMO runs the signal programs loaded with the network (fixed-time,
+        # Webster, actuated); actions are ignored but episodes, metrics and termination
+        # follow exactly the same rules as for learning agents (D14).
+        self.control = control
         self.manifest = manifest
         self.route_files = manifest.route_files(profile, split)
         if not self.route_files:
@@ -150,6 +164,9 @@ class TrafficSignalEnv(ParallelEnv):
 
         additional = [str(manifest.path(f)) for f in manifest.additional_files]
         additional += list(extra_additional_files or [])
+        sumo_cmd = ([f"--additional-files {','.join(additional)}"] if additional else []) + list(
+            extra_sumo_args or []
+        )
         self.sumo_env = CountingSumoEnvironment(
             net_file=net_file,
             route_file=str(self.route_files[0]),
@@ -165,9 +182,8 @@ class TrafficSignalEnv(ParallelEnv):
             add_system_info=False,
             add_per_agent_info=False,
             sumo_warnings=False,
-            additional_sumo_cmd=f"--additional-files {','.join(additional)}"
-            if additional
-            else None,
+            additional_sumo_cmd=" ".join(sumo_cmd) if sumo_cmd else None,
+            fixed_ts=control == "program",
         )
         if sorted(self.sumo_env.ts_ids) != self.spec.agents:
             raise RuntimeError("SUMO-RL and the topology disagree on the traffic lights")
@@ -311,13 +327,19 @@ class TrafficSignalEnv(ParallelEnv):
     def reset(self, seed: int | None = None, options: dict | None = None):
         if seed is not None:
             self._rng = np.random.default_rng(seed)
-        if self.split == "train":
+        options = options or {}
+        if "route_index" in options:
+            route = self.route_files[int(options["route_index"])]
+        elif self.split == "train":
             route = self.route_files[self._rng.integers(len(self.route_files))]
         else:
             route = self.route_files[self._episode % len(self.route_files)]
         self._episode += 1
         self.sumo_env._route = str(route)  # SUMO-RL reads the route file at each reset
-        self.sumo_env.sumo_seed = int(self._rng.integers(2**31 - 1))
+        sumo_seed = options.get("sumo_seed", self._rng.integers(2**31 - 1))
+        self.sumo_env.sumo_seed = int(sumo_seed)
+        self.route_path = Path(route)
+        self.queue_log: list[float] = []
         self.route_file = Path(route).name
         self.meter.reset()
         self.constraints.state = {}
@@ -336,21 +358,29 @@ class TrafficSignalEnv(ParallelEnv):
         infos = {a: {"action_mask": obs[a]["action_mask"]} for a in self.agents}
         return obs, infos
 
-    def step(self, actions: dict[str, int]):
+    def step(self, actions: dict[str, int] | None):
+        """Advance one decision step (``actions`` is ignored, and may be None, in program mode)."""
         if not self.agents:
             raise RuntimeError("step() called on a finished episode; call reset()")
         now = self._now()
-        penalty = {}
-        for agent in self.agents:
-            ts = self._signals()[agent]
-            switched = self.constraints.apply(
-                agent, int(actions[agent]), now, ts.time_since_last_phase_change
-            )
-            penalty[agent] = float(self.reward_cfg["switch_penalty"]) if switched else 0.0
-        raw_obs, traffic, dones, _ = self.sumo_env.step({a: int(actions[a]) for a in self.agents})
-        for agent in self.agents:
-            if self._signals()[agent].green_phase != self.constraints.state[agent].green_phase:
-                raise RuntimeError(f"phase bookkeeping out of sync for {agent}")
+        penalty = {a: 0.0 for a in self.agents}
+        if self.control == "agents":
+            for agent in self.agents:
+                ts = self._signals()[agent]
+                switched = self.constraints.apply(
+                    agent, int(actions[agent]), now, ts.time_since_last_phase_change
+                )
+                penalty[agent] = float(self.reward_cfg["switch_penalty"]) if switched else 0.0
+            sumo_actions = {a: int(actions[a]) for a in self.agents}
+        else:
+            sumo_actions = {}
+        raw_obs, traffic, dones, _ = self.sumo_env.step(sumo_actions)
+        if self.control == "agents":
+            for agent in self.agents:
+                if self._signals()[agent].green_phase != self.constraints.state[agent].green_phase:
+                    raise RuntimeError(f"phase bookkeeping out of sync for {agent}")
+        sumo = self.sumo_env.sumo
+        self.queue_log.append(sum(self.meter.stats(sumo, a).halting_total for a in self.agents))
 
         rewards = features.mix_rewards(
             traffic,
@@ -417,10 +447,18 @@ class TrafficSignalEnv(ParallelEnv):
             "end_reason": end_reason,
             "sim_time": now,
             "route_file": self.route_file,
+            "control": self.control,
             "departed": departed,
             "arrived": self.sumo_env.arrived,
             "teleports": self.sumo_env.teleports,
             "teleport_rate": self.sumo_env.teleports / departed if departed else 0.0,
+            # Halting vehicles on all approaches (<= max_distance), averaged over decision steps.
+            "approach_queue_total": float(np.mean(self.queue_log)) if self.queue_log else 0.0,
+            "approach_queue_per_signal": (
+                float(np.mean(self.queue_log)) / len(self.possible_agents)
+                if self.queue_log
+                else 0.0
+            ),
             "constraints": {a: self.constraints.counters(a) for a in self.possible_agents},
             "longest_red": {a: self.constraints.longest_red(a, now) for a in self.possible_agents},
         }

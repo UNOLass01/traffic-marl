@@ -23,6 +23,8 @@ def make_env(
     split: str = "train",
     seed: int = 0,
     extra_additional_files: list[str] | None = None,
+    extra_sumo_args: list[str] | None = None,
+    control: str = "agents",
 ) -> TrafficSignalEnv:
     """Environment for ``config['scenario']`` with the demand profile ``config['env']['profile']``.
 
@@ -40,5 +42,7 @@ def make_env(
         yellow_time=int(scenario["signals"]["yellow_time"]),
         seed=seed,
         extra_additional_files=extra_additional_files,
+        extra_sumo_args=extra_sumo_args,
         reward_scale=scenario.get("reward_scale"),
+        control=control,
     )

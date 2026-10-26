@@ -162,7 +162,7 @@ Le terme de trafic local d'un agent est calculé sur la même approche de 200 m 
   rapportée à la capacité.
 
 **Schémas de coopération** (`env.reward.type`), avec t le terme de trafic et p la pénalité de
-changement de phase (**0,1** par défaut) :
+changement de phase (**0,5** par défaut, décision D25) :
 
 | Schéma | Récompense de l'agent i |
 |---|---|
@@ -183,8 +183,10 @@ dépende pas de la taille du réseau.
 | toujours garder | 3,17 | −15,2 / +17,2 | 0,010 | 0,3 % |
 | toujours changer | 3,68 | −12,0 / +17,3 | 0,050 | 1,4 % |
 
-Avec ces valeurs de départ, la pénalité de changement est **négligeable** devant le terme de
-trafic. Sur un épisode qui se termine réseau vide, la moyenne du terme `waiting` vaut exactement
+Ces mesures ont été faites avec une pénalité de 0,1. À cette valeur, la pénalité de changement
+est **négligeable** devant le terme de trafic. Elle est donc portée à **0,5** (décision D25),
+soit de 2 à 7 % de l'écart-type du terme de trafic dans ces mêmes épisodes. Les valeurs 0,1 et
+1,0 feront l'objet d'une ablation. Sur un épisode qui se termine réseau vide, la moyenne du terme `waiting` vaut exactement
 0 : c'est une différence qui se télescope. Ces deux constats sont soumis à l'équipe avant
 l'entraînement (phase 5).
 

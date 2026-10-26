@@ -1,0 +1,9 @@
+# Example experiment: baselines on the single intersection at medium demand.
+#   python experiments/evaluate.py --config configs/experiments/single_medium_baselines.yaml --method fixed_time
+defaults: [base.yaml, scenarios/single.yaml]
+experiment:
+  name: single_medium_baselines
+env:
+  profile: medium
+evaluation:
+  seeds: [0, 1, 2, 3, 4]
