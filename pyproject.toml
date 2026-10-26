@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trafficmarl"
+version = "0.1.0"
+description = "Multi-agent reinforcement learning for urban traffic signal control with SUMO"
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+# Runtime dependencies are pinned in requirements.txt; only the minimum needed
+# to import the package is declared here so `pip install -e .` never alters
+# the pinned scientific stack.
+dependencies = ["pyyaml", "numpy"]
+
+[project.scripts]
+trafficmarl = "trafficmarl.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "experiments"]
+extend-exclude = ["external", "results"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "N",   # pep8-naming
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra --strict-markers"
+markers = [
+    "sumo: tests that start a SUMO simulation (slower)",
+]

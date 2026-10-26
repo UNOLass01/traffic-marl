@@ -1,8 +1,33 @@
+# Python
 __pycache__/
 *.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Experiment outputs (never committed)
 results/
 ray_results/
 wandb/
-external/
-.ipynb_checkpoints/
+runs/
+checkpoints/
+*.ckpt
+*.pt
+*.pth
 *.log
+
+# Large SUMO outputs (tripinfo, emissions, queue/summary dumps)
+*_output.xml
+*.out.xml
+tripinfo*.xml
+emission*.xml
+
+# Third-party clones
+external/
+
+# Local editor / tool settings
+.vscode/
+.idea/

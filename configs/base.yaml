@@ -1,0 +1,14 @@
+# Settings shared by every experiment. Experiment configs include this file via
+#   defaults: [base.yaml, scenarios/<name>.yaml, algorithms/<name>.yaml]
+# and override only what differs.
+experiment:
+  name: unnamed
+  seeds: [0, 1, 2, 3, 4]   # at least 5 seeds per (method x scenario x demand)
+
+logging:
+  level: INFO
+  tensorboard: true
+  wandb: false             # W&B API key is read from the WANDB_API_KEY env var
+
+torch:
+  deterministic: false     # true = bit-reproducible GPU runs, slower
