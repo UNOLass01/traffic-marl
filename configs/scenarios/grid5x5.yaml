@@ -1,0 +1,7 @@
+defaults: [_synthetic_defaults.yaml]
+scenario:
+  name: grid5x5
+  output_dir: networks/grid/grid5x5
+  network: {nx: 5, ny: 5}
+  demand:
+    entry_rate: 600  # knee at ~950 veh/h

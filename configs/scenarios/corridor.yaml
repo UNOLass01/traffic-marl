@@ -1,0 +1,10 @@
+defaults: [_synthetic_defaults.yaml]
+scenario:
+  name: corridor
+  output_dir: networks/corridor
+  network: {nx: 4, ny: 1}       # 4 signalised intersections on one east-west arterial
+  demand:
+    entry_rate: 320  # knee at ~500 veh/h (arterial ends x3)
+    # The arterial ends ("left0A0", "right0D0") carry 3x the side-street demand,
+    # so a green wave along the arterial is what a good controller should find.
+    entry_weights: {left: 3.0, right: 3.0}

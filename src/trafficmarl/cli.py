@@ -63,6 +63,64 @@ def _cmd_config(args: argparse.Namespace) -> int:
     return 0
 
 
+def _scenario_names(requested: list[str]) -> list[str]:
+    from trafficmarl.scenarios.spec import available_scenarios
+
+    known = available_scenarios()
+    names = known if requested == ["all"] else requested
+    unknown = sorted(set(names) - set(known))
+    if unknown:
+        raise SystemExit(f"error: unknown scenario(s) {unknown}; available: {known}")
+    return names
+
+
+def _cmd_scenarios_build(args: argparse.Namespace) -> int:
+    """Generate networks, route files and manifests."""
+    from trafficmarl.scenarios import build_scenario
+
+    for name in _scenario_names(args.names):
+        manifest = build_scenario(name)
+        n_vehicles = sum(manifest.vehicles.values())
+        print(
+            f"{name}: {len(manifest.tls_ids)} TLS, {len(manifest.vehicles)} route files, "
+            f"{n_vehicles} vehicles -> {manifest.root}"
+        )
+    return 0
+
+
+def _cmd_scenarios_validate(args: argparse.Namespace) -> int:
+    """Simulate every route file headless and check teleports; write a CSV report."""
+    import pandas as pd
+
+    from trafficmarl.scenarios.spec import Manifest, load_scenario_config, output_dir
+    from trafficmarl.scenarios.validate import validate
+
+    rows = []
+    for name in _scenario_names(args.names):
+        cfg = load_scenario_config(name)
+        manifest = Manifest.load(output_dir(cfg))
+        rows += validate(manifest, **cfg["validation"])
+    table = pd.DataFrame(rows)
+    report = paths.RESULTS_DIR / "scenario_validation" / "validation.csv"
+    report.parent.mkdir(parents=True, exist_ok=True)
+    table.to_csv(report, index=False)
+    columns = [
+        "scenario",
+        "profile",
+        "split",
+        "inserted",
+        "arrived",
+        "teleports",
+        "mean_waiting_time",
+        "mean_travel_time",
+        "running_at_end",
+        "passed",
+    ]
+    print(table[columns].to_string(index=False))
+    print(f"report: {report}")
+    return 0 if table["passed"].all() else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="trafficmarl",
@@ -83,6 +141,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="dotted-path overrides applied after loading",
     )
     config.set_defaults(func=_cmd_config)
+
+    scenarios = sub.add_parser("scenarios", help="build and validate SUMO scenarios")
+    scen_sub = scenarios.add_subparsers(dest="scenarios_command", metavar="<action>", required=True)
+    for action, func, help_text in (
+        ("build", _cmd_scenarios_build, "generate networks and route files"),
+        ("validate", _cmd_scenarios_validate, "run each route file headless and check teleports"),
+    ):
+        p = scen_sub.add_parser(action, help=help_text)
+        p.add_argument("names", nargs="+", help="scenario names (configs/scenarios/) or 'all'")
+        p.set_defaults(func=func)
     return parser
 
 

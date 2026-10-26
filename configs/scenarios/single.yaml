@@ -1,0 +1,7 @@
+defaults: [_synthetic_defaults.yaml]
+scenario:
+  name: single
+  output_dir: networks/single
+  network: {nx: 1, ny: 1}
+  demand:
+    entry_rate: 800  # knee of fixed-time waiting at ~1300 veh/h

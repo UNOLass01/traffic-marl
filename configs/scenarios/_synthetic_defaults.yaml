@@ -1,0 +1,29 @@
+# Shared settings of the netgenerate-based scenarios. Not a scenario itself
+# (no `name` / `output_dir`); scenario files include it via `defaults`.
+scenario:
+  kind: synthetic
+  network:
+    block_length: 200          # m between neighbouring intersections
+    attach_length: 200         # m of the approach roads at the network fringe
+    lanes: 2                   # through lanes per approach
+    left_turn_lane_length: 100 # m of the dedicated left-turn lane (0 = none)
+    speed: 13.89               # m/s (50 km/h, urban limit)
+    tls_cycle: 90              # s, cycle of SUMO's default static program
+  demand:
+    duration: 3600             # s of vehicle insertions
+    # entry_rate (veh/h per fringe entry at multiplier 1.0) is set per scenario:
+    # calibrated so that `high` sits just below saturation of SUMO's default
+    # fixed-time program (networks/calibrate_demand.py, see docs/scenarios.md).
+    entry_weights: {}          # entry-id prefix -> rate multiplier
+    turn_probabilities: {straight: 0.7, right: 0.15, left: 0.15}
+    profiles:                  # multipliers at equally spaced knots over `duration`
+      low: [0.5]
+      medium: [1.0]
+      high: [1.5]
+      peak: [0.5, 1.0, 1.7, 1.7, 1.0, 0.5]   # morning-peak ramp, briefly above `high`
+    splits:                    # one route file per seed; seeds never shared
+      train: [1001, 1002, 1003]
+      eval: [2001, 2002]
+  validation:
+    end: 7200                  # s cap: simulate until all vehicles left or this time
+    max_teleport_ratio: 0.01

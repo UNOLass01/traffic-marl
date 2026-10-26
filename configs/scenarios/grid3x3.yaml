@@ -1,0 +1,7 @@
+defaults: [_synthetic_defaults.yaml]
+scenario:
+  name: grid3x3
+  output_dir: networks/grid/grid3x3
+  network: {nx: 3, ny: 3}
+  demand:
+    entry_rate: 650  # knee at ~1000 veh/h

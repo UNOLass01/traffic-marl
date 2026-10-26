@@ -15,7 +15,7 @@ extension studies parameter sharing without raw traffic data.
 | Phase | Content | Status |
 |---|---|---|
 | 0 | Project skeleton (package, config, seeding, logging, CLI, tests) | done |
-| 1 | Scenarios and demand profiles | — |
+| 1 | Scenarios and demand profiles | done |
 | 2 | Environment factory, observations, rewards | — |
 | 3 | Metrics | — |
 | 4 | Baselines | — |
@@ -77,6 +77,31 @@ Tested on Ubuntu 22.04 (WSL2) with SUMO 1.28 and Python 3.10.
 python -m trafficmarl --help
 python -m trafficmarl config configs/base.yaml experiment.name=demo   # print a resolved config
 ```
+
+### Scenarios
+
+| Scenario | Traffic lights | Description |
+|---|---|---|
+| `single` | 1 | isolated 4-arm intersection |
+| `corridor` | 4 | east-west arterial (arterial demand x3) |
+| `grid3x3` | 9 | main development grid |
+| `grid5x5` | 25 | scalability (Manhattan-type grid) |
+| `lust` | 14 | Luxembourg city centre cropped from LuST, morning peak |
+
+Each scenario has `low`, `medium`, `high` and non-stationary `peak` demand, with separate
+train and eval route files (disjoint seeds, or disjoint time windows for LuST). SUMO files are
+generated, not versioned:
+
+```bash
+networks/build_all.sh                            # build + validate everything (~10 min)
+python -m trafficmarl scenarios build grid3x3    # one scenario
+python -m trafficmarl scenarios validate all     # report in results/scenario_validation/
+sumo-gui -c networks/grid/grid3x3/grid3x3.sumocfg   # inspect (unset LIBSUMO_AS_TRACI first)
+```
+
+Each built scenario has a `manifest.yaml` listing its network, route files and traffic-light
+ids. Design choices, demand calibration and the LuST cropping procedure are documented
+(in French) in [docs/scenarios.md](docs/scenarios.md).
 
 ### Configuration
 

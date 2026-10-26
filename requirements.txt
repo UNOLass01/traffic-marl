@@ -130,6 +130,7 @@ pydantic==2.14.1
 pydantic_core==2.50.1
 Pygments==2.21.0
 pyparsing==3.3.3
+pyproj==3.7.1
 pytest==9.1.1
 python-dateutil==3.0.0
 python-json-logger==4.2.0
