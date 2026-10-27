@@ -265,6 +265,38 @@ def _cmd_baselines_webster(args: argparse.Namespace) -> int:
     return 0
 
 
+def _measure_saturation(name: str) -> tuple[str, dict]:
+    from trafficmarl.baselines.saturation import measure
+    from trafficmarl.scenarios.spec import Manifest, load_scenario_config, output_dir
+
+    base = load_config(paths.CONFIGS_DIR / "base.yaml")
+    scenario = load_scenario_config(name)
+    manifest = Manifest.load(output_dir(scenario))
+    cfg = base["baselines"]["webster"]["discharge_test"]
+    return name, measure(manifest, int(scenario["signals"]["yellow_time"]), cfg)
+
+
+def _cmd_baselines_saturation(args: argparse.Namespace) -> int:
+    """Measure saturation flow and lost time with a saturated discharge test (D31)."""
+    import multiprocessing
+
+    names = _scenario_names(args.names)
+    # libsumo hosts one simulation per process: one process per scenario.
+    with multiprocessing.get_context("spawn").Pool(len(names), maxtasksperchild=1) as pool:
+        for name, summary in pool.map(_measure_saturation, names):
+            flows = ", ".join(
+                f"{k} {v['saturation_flow']:.0f}±{v['std']:.0f} (n={v['n']})"
+                for k, v in summary["by_type"].items()
+            )
+            print(
+                f"{name:>9}: {flows}; lost time/phase {summary['lost_time_per_phase_s']:.2f} s "
+                f"(start-up {summary['startup_lost_s']:.2f}, "
+                f"end gain {summary['end_gain_s']:.2f}), "
+                f"valid tests {summary['valid_tests']}/{summary['tests']}"
+            )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="trafficmarl",
@@ -321,6 +353,11 @@ def build_parser() -> argparse.ArgumentParser:
     webster = base_sub.add_parser("webster", help="Webster plans from the training demand")
     webster.add_argument("names", nargs="+", help="scenario names or 'all'")
     webster.set_defaults(func=_cmd_baselines_webster)
+    saturation = base_sub.add_parser(
+        "saturation", help="measure saturation flow and lost time in SUMO (discharge test)"
+    )
+    saturation.add_argument("names", nargs="+", help="scenario names or 'all'")
+    saturation.set_defaults(func=_cmd_baselines_saturation)
 
     env = sub.add_parser("env", help="inspect and exercise the multi-agent environment")
     env_sub = env.add_subparsers(dest="env_command", metavar="<action>", required=True)

@@ -1,33 +1,45 @@
 config:
-  saturation_flow: 1800
+  saturation_flow: 1890.0
   max_cycle: 150
-  lost_time_per_phase: 4
+  lost_time_per_phase: 4.91
   peak_window: 900
   min_green: 5
   max_green: 50
+  discharge_test:
+    vehicles_per_lane: 40
+    buildup_s: 300
+    green_s: 40
+    startup_s: 10
+    clearance_s: 60
+    min_storage_m: 150
+    max_tests_per_type: 30
   yellow_time: 4
+saturation_flow_by_type:
+  through: 1890.0
+  left: 2011.8
+  right: 1970.8
 plans:
   low:
     '-10438':
-      cycle_s: 34.0
-      Y: 0.089
+      cycle_s: 36.0
+      Y: 0.084
       capped: false
       greens_s:
       - 5.0
       - 5.0
-      - 12.0
+      - 14.0
     '-11222':
-      cycle_s: 38.0
-      Y: 0.235
+      cycle_s: 43.0
+      Y: 0.213
       capped: false
       greens_s:
+      - 7.0
+      - 7.0
       - 6.0
-      - 6.0
-      - 5.0
-      - 5.0
+      - 7.0
     '-16730':
       cycle_s: 38.0
-      Y: 0.069
+      Y: 0.065
       capped: false
       greens_s:
       - 5.0
@@ -35,495 +47,384 @@ plans:
       - 6.0
       - 6.0
     '-17472':
-      cycle_s: 27.0
-      Y: 0.17
+      cycle_s: 32.0
+      Y: 0.156
       capped: false
       greens_s:
-      - 5.0
-      - 5.0
-      - 5.0
+      - 7.0
+      - 7.0
+      - 6.0
     '-20740':
-      cycle_s: 28.0
-      Y: 0.094
+      cycle_s: 29.0
+      Y: 0.086
       capped: false
       greens_s:
       - 5.0
+      - 5.0
+      - 7.0
+    '-21042':
+      cycle_s: 45.0
+      Y: 0.185
+      capped: false
+      greens_s:
+      - 6.0
+      - 5.0
+      - 9.0
+      - 9.0
+    '-24852':
+      cycle_s: 40.0
+      Y: 0.1
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 7.0
+      - 7.0
+    '-28504':
+      cycle_s: 41.0
+      Y: 0.09
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 7.0
+      - 5.0
+    '-29558':
+      cycle_s: 46.0
+      Y: 0.202
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 11.0
+      - 5.0
+    '-5432':
+      cycle_s: 35.0
+      Y: 0.168
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 9.0
+    '-5554':
+      cycle_s: 29.0
+      Y: 0.062
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 7.0
+    '-8178':
+      cycle_s: 40.0
+      Y: 0.093
+      capped: false
+      greens_s:
+      - 7.0
       - 5.0
       - 6.0
+      - 6.0
+    '-8358':
+      cycle_s: 23.0
+      Y: 0.14
+      capped: false
+      greens_s:
+      - 8.0
+      - 7.0
+  medium:
+    '-10438':
+      cycle_s: 37.0
+      Y: 0.143
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 15.0
+    '-11222':
+      cycle_s: 54.0
+      Y: 0.355
+      capped: false
+      greens_s:
+      - 10.0
+      - 10.0
+      - 9.0
+      - 9.0
+    '-16730':
+      cycle_s: 40.0
+      Y: 0.108
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 7.0
+      - 7.0
+    '-17472':
+      cycle_s: 38.0
+      Y: 0.285
+      capped: false
+      greens_s:
+      - 9.0
+      - 9.0
+      - 8.0
+    '-20740':
+      cycle_s: 32.0
+      Y: 0.148
+      capped: false
+      greens_s:
+      - 6.0
+      - 6.0
+      - 8.0
     '-21042':
+      cycle_s: 53.0
+      Y: 0.313
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 12.0
+      - 12.0
+    '-24852':
+      cycle_s: 42.0
+      Y: 0.181
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 8.0
+      - 8.0
+    '-28504':
+      cycle_s: 43.0
+      Y: 0.147
+      capped: false
+      greens_s:
+      - 8.0
+      - 5.0
+      - 9.0
+      - 5.0
+    '-29558':
+      cycle_s: 54.0
+      Y: 0.343
+      capped: false
+      greens_s:
+      - 12.0
+      - 6.0
+      - 15.0
+      - 5.0
+    '-5432':
+      cycle_s: 41.0
+      Y: 0.302
+      capped: false
+      greens_s:
+      - 12.0
+      - 5.0
+      - 12.0
+    '-5554':
+      cycle_s: 30.0
+      Y: 0.108
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 8.0
+    '-8178':
+      cycle_s: 42.0
+      Y: 0.15
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 6.0
+      - 6.0
+    '-8358':
+      cycle_s: 26.0
+      Y: 0.25
+      capped: false
+      greens_s:
+      - 9.0
+      - 9.0
+  high:
+    '-10438':
+      cycle_s: 38.0
+      Y: 0.178
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 16.0
+    '-11222':
+      cycle_s: 64.0
+      Y: 0.463
+      capped: false
+      greens_s:
+      - 12.0
+      - 12.0
+      - 12.0
+      - 12.0
+    '-16730':
+      cycle_s: 42.0
+      Y: 0.148
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 8.0
+      - 8.0
+    '-17472':
+      cycle_s: 43.0
+      Y: 0.366
+      capped: false
+      greens_s:
+      - 11.0
+      - 11.0
+      - 9.0
+    '-20740':
+      cycle_s: 35.0
+      Y: 0.197
+      capped: false
+      greens_s:
+      - 7.0
+      - 7.0
+      - 9.0
+    '-21042':
+      cycle_s: 59.0
+      Y: 0.408
+      capped: false
+      greens_s:
+      - 10.0
+      - 5.0
+      - 14.0
+      - 14.0
+    '-24852':
+      cycle_s: 46.0
+      Y: 0.233
+      capped: false
+      greens_s:
+      - 6.0
+      - 6.0
+      - 9.0
+      - 9.0
+    '-28504':
+      cycle_s: 44.0
+      Y: 0.188
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 9.0
+      - 5.0
+    '-29558':
+      cycle_s: 64.0
+      Y: 0.447
+      capped: false
+      greens_s:
+      - 16.0
+      - 8.0
+      - 19.0
+      - 5.0
+    '-5432':
+      cycle_s: 45.0
+      Y: 0.392
+      capped: false
+      greens_s:
+      - 14.0
+      - 5.0
+      - 14.0
+    '-5554':
+      cycle_s: 31.0
+      Y: 0.142
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 9.0
+    '-8178':
+      cycle_s: 43.0
+      Y: 0.193
+      capped: false
+      greens_s:
+      - 10.0
+      - 5.0
+      - 6.0
+      - 6.0
+    '-8358':
+      cycle_s: 29.0
+      Y: 0.322
+      capped: false
+      greens_s:
+      - 11.0
+      - 10.0
+  peak:
+    '-10438':
       cycle_s: 40.0
       Y: 0.201
       capped: false
       greens_s:
       - 5.0
       - 5.0
-      - 7.0
-      - 7.0
-    '-24852':
-      cycle_s: 38.0
-      Y: 0.108
+      - 18.0
+    '-11222':
+      cycle_s: 94.0
+      Y: 0.636
+      capped: false
+      greens_s:
+      - 20.0
+      - 20.0
+      - 14.0
+      - 24.0
+    '-16730':
+      cycle_s: 40.0
+      Y: 0.156
       capped: false
       greens_s:
       - 5.0
       - 5.0
-      - 6.0
-      - 6.0
-    '-28504':
-      cycle_s: 39.0
-      Y: 0.097
-      capped: false
-      greens_s:
       - 7.0
-      - 5.0
-      - 6.0
-      - 5.0
-    '-29558':
+      - 7.0
+    '-17472':
       cycle_s: 42.0
-      Y: 0.219
+      Y: 0.351
       capped: false
       greens_s:
-      - 7.0
-      - 5.0
-      - 9.0
-      - 5.0
-    '-5432':
-      cycle_s: 31.0
-      Y: 0.177
-      capped: false
-      greens_s:
-      - 7.0
-      - 5.0
-      - 7.0
-    '-5554':
-      cycle_s: 28.0
-      Y: 0.068
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 6.0
-    '-8178':
-      cycle_s: 38.0
-      Y: 0.099
-      capped: false
-      greens_s:
-      - 7.0
-      - 5.0
-      - 5.0
-      - 5.0
-    '-8358':
-      cycle_s: 20.0
-      Y: 0.151
-      capped: false
-      greens_s:
-      - 6.0
-      - 6.0
-  medium:
-    '-10438':
+      - 10.0
+      - 10.0
+      - 10.0
+    '-20740':
       cycle_s: 34.0
-      Y: 0.152
+      Y: 0.215
       capped: false
       greens_s:
-      - 5.0
-      - 5.0
-      - 12.0
-    '-11222':
-      cycle_s: 47.0
-      Y: 0.392
-      capped: false
-      greens_s:
-      - 8.0
-      - 8.0
+      - 7.0
       - 7.0
       - 8.0
-    '-16730':
-      cycle_s: 38.0
-      Y: 0.114
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 6.0
-      - 6.0
-    '-17472':
-      cycle_s: 34.0
-      Y: 0.31
-      capped: false
-      greens_s:
-      - 8.0
-      - 8.0
-      - 6.0
-    '-20740':
-      cycle_s: 28.0
-      Y: 0.163
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 6.0
     '-21042':
-      cycle_s: 47.0
-      Y: 0.341
+      cycle_s: 71.0
+      Y: 0.515
       capped: false
       greens_s:
-      - 6.0
-      - 5.0
-      - 10.0
-      - 10.0
-    '-24852':
-      cycle_s: 38.0
-      Y: 0.198
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 6.0
-      - 6.0
-    '-28504':
-      cycle_s: 40.0
-      Y: 0.159
-      capped: false
-      greens_s:
+      - 16.0
       - 7.0
-      - 5.0
-      - 7.0
-      - 5.0
-    '-29558':
-      cycle_s: 49.0
-      Y: 0.37
-      capped: false
-      greens_s:
-      - 10.0
-      - 5.0
-      - 13.0
-      - 5.0
-    '-5432':
-      cycle_s: 35.0
-      Y: 0.319
-      capped: false
-      greens_s:
-      - 9.0
-      - 5.0
-      - 9.0
-    '-5554':
-      cycle_s: 29.0
-      Y: 0.117
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 7.0
-    '-8178':
-      cycle_s: 39.0
-      Y: 0.161
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
-      - 5.0
-      - 5.0
-    '-8358':
-      cycle_s: 24.0
-      Y: 0.273
-      capped: false
-      greens_s:
-      - 8.0
-      - 8.0
-  high:
-    '-10438':
-      cycle_s: 35.0
-      Y: 0.19
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 13.0
-    '-11222':
-      cycle_s: 59.0
-      Y: 0.511
-      capped: false
-      greens_s:
-      - 11.0
-      - 11.0
-      - 10.0
-      - 11.0
-    '-16730':
-      cycle_s: 38.0
-      Y: 0.157
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 6.0
-      - 6.0
-    '-17472':
-      cycle_s: 37.0
-      Y: 0.399
-      capped: false
-      greens_s:
-      - 9.0
-      - 9.0
-      - 7.0
-    '-20740':
-      cycle_s: 29.0
-      Y: 0.216
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 7.0
-    '-21042':
-      cycle_s: 53.0
-      Y: 0.444
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
-      - 12.0
-      - 12.0
-    '-24852':
-      cycle_s: 40.0
-      Y: 0.254
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 7.0
-      - 7.0
-    '-28504':
-      cycle_s: 40.0
-      Y: 0.203
-      capped: false
-      greens_s:
-      - 7.0
-      - 5.0
-      - 7.0
-      - 5.0
-    '-29558':
-      cycle_s: 58.0
-      Y: 0.483
-      capped: false
-      greens_s:
-      - 13.0
-      - 7.0
-      - 17.0
-      - 5.0
-    '-5432':
-      cycle_s: 41.0
-      Y: 0.414
-      capped: false
-      greens_s:
-      - 12.0
-      - 5.0
-      - 12.0
-    '-5554':
-      cycle_s: 29.0
-      Y: 0.155
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 7.0
-    '-8178':
-      cycle_s: 39.0
-      Y: 0.208
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
-      - 5.0
-      - 5.0
-    '-8358':
-      cycle_s: 26.0
-      Y: 0.35
-      capped: false
-      greens_s:
-      - 9.0
-      - 9.0
-  peak:
-    '-10438':
-      cycle_s: 36.0
-      Y: 0.213
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 14.0
-    '-11222':
-      cycle_s: 97.0
-      Y: 0.703
-      capped: false
-      greens_s:
-      - 21.0
-      - 21.0
-      - 14.0
-      - 25.0
-    '-16730':
-      cycle_s: 38.0
-      Y: 0.167
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 6.0
-      - 6.0
-    '-17472':
-      cycle_s: 37.0
-      Y: 0.381
-      capped: false
-      greens_s:
-      - 8.0
-      - 8.0
-      - 9.0
-    '-20740':
-      cycle_s: 31.0
-      Y: 0.237
-      capped: false
-      greens_s:
-      - 6.0
-      - 6.0
-      - 7.0
-    '-21042':
-      cycle_s: 67.0
-      Y: 0.561
-      capped: false
-      greens_s:
-      - 15.0
-      - 6.0
-      - 15.0
-      - 15.0
-    '-24852':
-      cycle_s: 36.0
-      Y: 0.191
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 5.0
-      - 5.0
-    '-28504':
-      cycle_s: 45.0
-      Y: 0.317
-      capped: false
-      greens_s:
-      - 10.0
-      - 5.0
-      - 9.0
-      - 5.0
-    '-29558':
-      cycle_s: 62.0
-      Y: 0.529
-      capped: false
-      greens_s:
-      - 14.0
-      - 8.0
-      - 19.0
-      - 5.0
-    '-5432':
-      cycle_s: 41.0
-      Y: 0.433
-      capped: false
-      greens_s:
-      - 11.0
-      - 5.0
-      - 13.0
-    '-5554':
-      cycle_s: 31.0
-      Y: 0.187
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 9.0
-    '-8178':
-      cycle_s: 38.0
-      Y: 0.219
-      capped: false
-      greens_s:
-      - 6.0
-      - 5.0
-      - 6.0
-      - 5.0
-    '-8358':
-      cycle_s: 30.0
-      Y: 0.418
-      capped: false
-      greens_s:
-      - 11.0
-      - 11.0
-  saturated:
-    '-10438':
-      cycle_s: 36.0
-      Y: 0.229
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 14.0
-    '-11222':
-      cycle_s: 70.0
-      Y: 0.588
-      capped: false
-      greens_s:
-      - 14.0
-      - 14.0
-      - 13.0
-      - 13.0
-    '-16730':
-      cycle_s: 38.0
-      Y: 0.174
-      capped: false
-      greens_s:
-      - 5.0
-      - 5.0
-      - 6.0
-      - 6.0
-    '-17472':
-      cycle_s: 43.0
-      Y: 0.466
-      capped: false
-      greens_s:
-      - 11.0
-      - 11.0
-      - 9.0
-    '-20740':
-      cycle_s: 31.0
-      Y: 0.254
-      capped: false
-      greens_s:
-      - 6.0
-      - 6.0
-      - 7.0
-    '-21042':
-      cycle_s: 59.0
-      Y: 0.505
-      capped: false
-      greens_s:
-      - 10.0
-      - 5.0
-      - 14.0
-      - 14.0
+      - 16.0
+      - 16.0
     '-24852':
       cycle_s: 42.0
-      Y: 0.303
+      Y: 0.176
       capped: false
       greens_s:
-      - 5.0
-      - 5.0
-      - 8.0
-      - 8.0
-    '-28504':
-      cycle_s: 41.0
-      Y: 0.238
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
+      - 6.0
+      - 6.0
       - 7.0
+      - 7.0
+    '-28504':
+      cycle_s: 50.0
+      Y: 0.293
+      capped: false
+      greens_s:
+      - 12.0
+      - 6.0
+      - 11.0
       - 5.0
     '-29558':
       cycle_s: 67.0
-      Y: 0.562
+      Y: 0.489
       capped: false
       greens_s:
       - 16.0
@@ -531,34 +432,145 @@ plans:
       - 21.0
       - 5.0
     '-5432':
-      cycle_s: 45.0
-      Y: 0.479
+      cycle_s: 46.0
+      Y: 0.401
       capped: false
       greens_s:
       - 14.0
       - 5.0
-      - 14.0
+      - 15.0
     '-5554':
-      cycle_s: 29.0
-      Y: 0.174
+      cycle_s: 34.0
+      Y: 0.172
       capped: false
       greens_s:
       - 5.0
       - 5.0
-      - 7.0
+      - 12.0
     '-8178':
-      cycle_s: 39.0
-      Y: 0.239
+      cycle_s: 44.0
+      Y: 0.204
       capped: false
       greens_s:
       - 8.0
-      - 5.0
-      - 5.0
-      - 5.0
+      - 6.0
+      - 8.0
+      - 6.0
     '-8358':
-      cycle_s: 28.0
-      Y: 0.413
+      cycle_s: 32.0
+      Y: 0.382
+      capped: false
+      greens_s:
+      - 12.0
+      - 12.0
+  saturated:
+    '-10438':
+      cycle_s: 39.0
+      Y: 0.215
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 17.0
+    '-11222':
+      cycle_s: 74.0
+      Y: 0.532
+      capped: false
+      greens_s:
+      - 15.0
+      - 15.0
+      - 14.0
+      - 14.0
+    '-16730':
+      cycle_s: 42.0
+      Y: 0.164
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 8.0
+      - 8.0
+    '-17472':
+      cycle_s: 46.0
+      Y: 0.428
+      capped: false
+      greens_s:
+      - 12.0
+      - 12.0
+      - 10.0
+    '-20740':
+      cycle_s: 35.0
+      Y: 0.231
+      capped: false
+      greens_s:
+      - 7.0
+      - 7.0
+      - 9.0
+    '-21042':
+      cycle_s: 64.0
+      Y: 0.464
+      capped: false
+      greens_s:
+      - 11.0
+      - 5.0
+      - 16.0
+      - 16.0
+    '-24852':
+      cycle_s: 48.0
+      Y: 0.278
+      capped: false
+      greens_s:
+      - 6.0
+      - 6.0
+      - 10.0
+      - 10.0
+    '-28504':
+      cycle_s: 46.0
+      Y: 0.221
       capped: false
       greens_s:
       - 10.0
+      - 5.0
       - 10.0
+      - 5.0
+    '-29558':
+      cycle_s: 73.0
+      Y: 0.52
+      capped: false
+      greens_s:
+      - 19.0
+      - 10.0
+      - 23.0
+      - 5.0
+    '-5432':
+      cycle_s: 49.0
+      Y: 0.454
+      capped: false
+      greens_s:
+      - 16.0
+      - 5.0
+      - 16.0
+    '-5554':
+      cycle_s: 31.0
+      Y: 0.16
+      capped: false
+      greens_s:
+      - 5.0
+      - 5.0
+      - 9.0
+    '-8178':
+      cycle_s: 44.0
+      Y: 0.222
+      capped: false
+      greens_s:
+      - 11.0
+      - 5.0
+      - 6.0
+      - 6.0
+    '-8358':
+      cycle_s: 32.0
+      Y: 0.378
+      capped: false
+      greens_s:
+      - 12.0
+      - 12.0

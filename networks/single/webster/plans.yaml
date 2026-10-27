@@ -1,36 +1,48 @@
 config:
-  saturation_flow: 1800
+  saturation_flow: 1875.0
   max_cycle: 150
-  lost_time_per_phase: 3
+  lost_time_per_phase: 3.04
   peak_window: 900
   min_green: 5
   max_green: 50
+  discharge_test:
+    vehicles_per_lane: 40
+    buildup_s: 300
+    green_s: 40
+    startup_s: 10
+    clearance_s: 60
+    min_storage_m: 150
+    max_tests_per_type: 30
   yellow_time: 3
+saturation_flow_by_type:
+  through: 1875.0
+  left: 1680.0
+  right: 1320.0
 plans:
   low:
     A0:
-      cycle_s: 38.0
-      Y: 0.294
+      cycle_s: 39.0
+      Y: 0.317
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
       - 8.0
       - 5.0
   medium:
     A0:
-      cycle_s: 57.0
-      Y: 0.593
+      cycle_s: 65.0
+      Y: 0.64
       capped: false
       greens_s:
-      - 18.0
-      - 5.0
-      - 17.0
-      - 5.0
+      - 21.0
+      - 6.0
+      - 20.0
+      - 6.0
   high:
     A0:
       cycle_s: 144.0
-      Y: 0.881
+      Y: 0.949
       capped: true
       greens_s:
       - 50.0
@@ -40,7 +52,7 @@ plans:
   peak:
     A0:
       cycle_s: 142.0
-      Y: 0.907
+      Y: 0.981
       capped: true
       greens_s:
       - 50.0
@@ -50,7 +62,7 @@ plans:
   saturated:
     A0:
       cycle_s: 145.0
-      Y: 1.178
+      Y: 1.269
       capped: true
       greens_s:
       - 50.0

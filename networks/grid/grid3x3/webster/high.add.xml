@@ -1,93 +1,93 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <additional>
     <tlLogic id="A0" type="static" programID="webster" offset="0">
-        <phase duration="27" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="37" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="8" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="11" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="26" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="37" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="8" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="12" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="A1" type="static" programID="webster" offset="0">
-        <phase duration="26" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="37" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="8" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="11" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="26" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="36" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="8" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="11" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="A2" type="static" programID="webster" offset="0">
-        <phase duration="26" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="35" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="7" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="10" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="25" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="35" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="8" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="10" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="B0" type="static" programID="webster" offset="0">
-        <phase duration="24" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="34" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="8" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="11" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="24" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="33" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="7" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="10" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="B1" type="static" programID="webster" offset="0">
-        <phase duration="24" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="33" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="8" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="11" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="25" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="35" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="7" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="10" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="B2" type="static" programID="webster" offset="0">
-        <phase duration="25" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="35" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="8" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="11" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="25" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="35" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="8" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="11" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="C0" type="static" programID="webster" offset="0">
-        <phase duration="27" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="38" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="8" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="11" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="26" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="37" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="8" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="11" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="C1" type="static" programID="webster" offset="0">
-        <phase duration="26" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="37" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="8" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="11" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="27" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="38" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="8" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="11" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
     <tlLogic id="C2" type="static" programID="webster" offset="0">
-        <phase duration="25" state="GGGgrrrrGGGgrrrr" />
+        <phase duration="35" state="GGGgrrrrGGGgrrrr" />
         <phase duration="3" state="yyygrrrryyygrrrr" />
-        <phase duration="7" state="rrrGrrrrrrrGrrrr" />
+        <phase duration="10" state="rrrGrrrrrrrGrrrr" />
         <phase duration="3" state="rrryrrrrrrryrrrr" />
-        <phase duration="26" state="rrrrGGGgrrrrGGGg" />
+        <phase duration="36" state="rrrrGGGgrrrrGGGg" />
         <phase duration="3" state="rrrryyygrrrryyyg" />
-        <phase duration="7" state="rrrrrrrGrrrrrrrG" />
+        <phase duration="10" state="rrrrrrrGrrrrrrrG" />
         <phase duration="3" state="rrrrrrryrrrrrrry" />
     </tlLogic>
 </additional>

@@ -20,7 +20,7 @@ from trafficmarl.utils.config import deep_merge, load_config
 from trafficmarl.utils.logging_utils import get_logger, setup_logging
 
 logger = get_logger("run_baselines")
-PROGRAM_METHODS = ["fixed_time", "webster", "actuated", "max_pressure"]
+PROGRAM_METHODS = ["fixed_time", "webster", "actuated", "max_pressure", "max_pressure_maxred"]
 
 
 def _done(experiment: str, method: str, seeds: list[int]) -> bool:
@@ -52,6 +52,13 @@ def main() -> None:
     )
     parser.add_argument("--profiles", nargs="+", default=["medium", "high", "peak"])
     parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
+    parser.add_argument(
+        "--lust-seeds",
+        type=int,
+        nargs="+",
+        default=list(range(10)),
+        help="LuST has one evaluation file per profile and a high variance: 10 seeds (D34)",
+    )
     parser.add_argument("--methods", nargs="+", default=PROGRAM_METHODS)
     parser.add_argument(
         "--centralized",
@@ -75,11 +82,14 @@ def main() -> None:
         for profile in args.profiles:
             experiment = f"baselines/{scenario}_{profile}"
             config = experiment_config(scenario, {"env": {"profile": profile}})
+            seeds = args.lust_seeds if scenario == "lust" else args.seeds
             for method in args.methods:
-                if _done(experiment, method, args.seeds):
+                if _done(experiment, method, seeds):
                     continue
-                evaluate(config, controller_spec(method), args.seeds, experiment=experiment,
-                         workers=args.workers)  # fmt: skip
+                spec = controller_spec(method)
+                if method == "max_pressure_maxred":
+                    spec["env"] = {"max_red": config["baselines"]["max_pressure"]["max_red"]}
+                evaluate(config, spec, seeds, experiment=experiment, workers=args.workers)
 
     # 2. Centralized single agent: train on medium demand, evaluate on every profile.
     # Trainings run one at a time in this process: each starts its own SUMO subprocesses

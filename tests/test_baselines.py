@@ -129,3 +129,122 @@ def test_centralized_wrapper_shapes_and_masks():
     obs_shape, nvec, mask_shape = out["shapes"]
     assert obs_shape == (4 * 47,) and nvec == [4, 4, 4, 4] and mask_shape == (16,)
     assert isinstance(out["reward"], float)
+
+
+# ------------------------------------------------- Webster sanity checks (D31)
+SCENARIOS = ("single", "corridor", "grid3x3", "grid5x5", "lust")
+
+
+def _manifest(name: str) -> Manifest:
+    return Manifest.load(output_dir(experiment_config(name)["scenario"]))
+
+
+def test_webster_programs_keep_phase_structure():
+    """Webster only changes green durations; every movement with demand gets a green."""
+    import xml.etree.ElementTree as ET
+
+    from trafficmarl.scenarios.tls import is_green_phase
+
+    for name in SCENARIOS:
+        manifest = _manifest(name)
+        net_file = manifest.path(manifest.net_file)
+        original = webster.program_phases(net_file)
+        net = sumolib.net.readNet(str(net_file), withPrograms=True)
+        moves = webster.junction_lanes(net)
+        plans = yaml.safe_load((manifest.root / "webster" / "plans.yaml").read_text())["plans"]
+        for profile in ("medium", "high", "peak"):
+            add = ET.parse(manifest.root / "webster" / f"{profile}.add.xml").getroot()
+            counts = webster.movement_counts(manifest.route_files(profile, "train"), moves, 3600)
+            for logic in add.iter("tlLogic"):
+                tls = logic.get("id")
+                phases = [(p.get("state"), float(p.get("duration"))) for p in logic.iter("phase")]
+                assert [s for s, _ in phases] == [s for s, _ in original[tls]]
+                for (state, d), (_, d0) in zip(phases, original[tls], strict=True):
+                    if not is_green_phase(state):
+                        assert d == d0  # yellow kept
+                greens = [d for s, d in phases if is_green_phase(s)]
+                assert greens == plans[profile][tls]["greens_s"]
+                # Every link carrying training demand is green in some green phase.
+                served = {i for s, _ in phases if is_green_phase(s)
+                          for i, c in enumerate(s) if c in "Gg"}  # fmt: skip
+                tl = net.getTLS(tls)
+                for in_lane, out_lane, idx in tl.getConnections():
+                    move = (in_lane.getEdge().getID(), out_lane.getEdge().getID())
+                    if any(per_bin.get(move) for per_bin in counts.get(tls, {}).values()):
+                        assert idx in served, (name, tls, idx)
+
+
+def _active_programs(name: str) -> dict:
+    import traci
+
+    manifest = _manifest(name)
+    add = webster.webster_file(manifest, "medium")
+    traci.start([sumolib.checkBinary("sumo"), "-n", str(manifest.path(manifest.net_file)),
+                 "--additional-files", str(add), "--no-step-log"])  # fmt: skip
+    traci.simulationStep()
+    result = {}
+    for tls in manifest.tls_ids:
+        program = traci.trafficlight.getProgram(tls)
+        logic = next(
+            lg for lg in traci.trafficlight.getAllProgramLogics(tls) if lg.programID == program
+        )
+        result[tls] = (program, [p.duration for p in logic.phases])
+    traci.close()
+    return result
+
+
+@requires_sumo
+def test_sumo_runs_the_webster_program_on_lust():
+    ctx = multiprocessing.get_context("spawn")
+    with ctx.Pool(1, maxtasksperchild=1) as pool:
+        active = pool.apply(_active_programs, ("lust",))
+    manifest = _manifest("lust")
+    plans = yaml.safe_load((manifest.root / "webster" / "plans.yaml").read_text())["plans"]
+    for tls, (program, durations) in active.items():
+        assert program == webster.PROGRAM_ID
+        assert set(plans["medium"][tls]["greens_s"]) <= set(durations)
+
+
+def test_saturation_measured_for_every_scenario():
+    from trafficmarl.baselines.saturation import load_measured
+
+    for name in SCENARIOS:
+        summary = load_measured(_manifest(name))
+        assert set(summary["by_type"]) == {"through", "left", "right"}
+        for value in summary["by_type"].values():
+            assert 1000 < value["saturation_flow"] < 2600
+        assert 2.0 < summary["lost_time_per_phase_s"] < 8.0
+
+
+def test_saturation_summary_math():
+    from trafficmarl.baselines.saturation import summarize_tests
+
+    cfg = {"startup_s": 10, "green_s": 40}
+    rows = [
+        # 2 lanes, 1 veh/s in total -> 1800 veh/h/lane; 8 crossings in the first 10 s
+        # -> start-up lost time 10 - 8/1 = 2 s; 1 crossing in yellow -> end gain 1 s.
+        {"type": "through", "lanes": 2, "rate": 1.0, "startup_crossings": 8,
+         "yellow_crossings": 1, "saturated_to_end": True},
+        {"type": "left", "lanes": 1, "rate": 0.5, "startup_crossings": 4,
+         "yellow_crossings": 0, "saturated_to_end": True},
+        {"type": "right", "lanes": 1, "rate": 0.4, "startup_crossings": 0,
+         "yellow_crossings": 0, "saturated_to_end": False},  # queue ran out: ignored
+    ]  # fmt: skip
+    s = summarize_tests(rows, cfg, yellow=3)
+    assert s["by_type"]["through"]["saturation_flow"] == 1800
+    assert s["by_type"]["left"]["saturation_flow"] == 1800
+    assert "right" not in s["by_type"] and s["valid_tests"] == 2
+    assert s["startup_lost_s"] == pytest.approx((2 + 2) / 2)
+    assert s["end_gain_s"] == pytest.approx(0.5)
+    assert s["lost_time_per_phase_s"] == pytest.approx(2 + 3 - 0.5)
+
+
+def test_webster_turning_flows_in_through_equivalents():
+    counts = {0: {("a", "b"): 90.0, ("a", "c"): 90.0}}
+    lanes = {("a", "b"): {"a_0"}, ("a", "c"): {"a_0"}}
+    flows = webster.hourly_lane_flows(
+        counts, lanes, duration=3600, bin_seconds=3600, busiest_window=False,
+        weights={("a", "c"): 1800 / 1200},
+    )  # fmt: skip
+    # 90 through + 90 turning at s = 1200 -> 90 + 135 through-equivalents.
+    assert flows["a_0"] == pytest.approx(225.0)

@@ -52,6 +52,7 @@ def test_delay_metrics_include_unfinished_and_never_inserted(outputs):
     assert m["mean_total_delay"] == pytest.approx((21 + 43 + 48 + 20) / 4)
     assert m["co2_total_kg"] == pytest.approx(0.6)
     assert m["max_waiting_time"] == 45.0  # the unfinished vehicle counts
+    assert m["p95_total_delay"] == pytest.approx(np.percentile([21, 43, 48, 20], 95))
 
 
 def test_network_queue_is_time_average(outputs):
@@ -99,6 +100,20 @@ def test_acceptance_rule():
     # A not-significant difference in waiting is not enough.
     noisy = stats.compare([29.0, 31.5, 28.0, 32.0, 29.9], base_wait, zeros, zeros, zeros, zeros)
     assert not noisy.beats and not noisy.waiting_lower
+
+
+def test_acceptance_rule_tail_delay_and_best_program():
+    base_wait = [30.0, 31.0, 29.5, 30.5, 30.2]
+    better = [20.0, 21.0, 19.5, 20.4, 20.8]
+    zeros = [0, 0, 0, 0, 0]
+    # Lower mean waiting but a clearly worse 95th-percentile delay: rejected (starvation).
+    tail = stats.compare(better, base_wait, zeros, zeros, zeros, zeros,
+                         [90, 95, 92, 94, 91], [60, 61, 59, 62, 60])  # fmt: skip
+    assert not tail.beats and tail.tail_delay_increased
+    best = stats.best_program_baseline(
+        {"fixed_time": 20.0, "webster": 25.0, "actuated": 18.0, "max_pressure": 5.0}
+    )
+    assert best == "actuated"  # max-pressure is a reference, not an acceptance baseline
 
 
 def test_increase_ignores_seed_noise():

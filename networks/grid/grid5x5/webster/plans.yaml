@@ -1,95 +1,125 @@
 config:
-  saturation_flow: 1800
+  saturation_flow: 1896.0
   max_cycle: 150
-  lost_time_per_phase: 3
+  lost_time_per_phase: 3.56
   peak_window: 900
   min_green: 5
   max_green: 50
+  discharge_test:
+    vehicles_per_lane: 40
+    buildup_s: 300
+    green_s: 40
+    startup_s: 10
+    clearance_s: 60
+    min_storage_m: 150
+    max_tests_per_type: 30
   yellow_time: 3
+saturation_flow_by_type:
+  through: 1896.0
+  left: 1720.0
+  right: 1368.0
 plans:
   low:
     A0:
-      cycle_s: 37.0
+      cycle_s: 40.0
+      Y: 0.248
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 9.0
+      - 5.0
+    A1:
+      cycle_s: 40.0
+      Y: 0.245
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 9.0
+      - 5.0
+    A2:
+      cycle_s: 40.0
+      Y: 0.246
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 9.0
+      - 5.0
+    A3:
+      cycle_s: 40.0
       Y: 0.234
       capped: false
       greens_s:
-      - 7.0
+      - 9.0
       - 5.0
-      - 8.0
-      - 5.0
-    A1:
-      cycle_s: 36.0
-      Y: 0.23
-      capped: false
-      greens_s:
-      - 7.0
-      - 5.0
-      - 7.0
-      - 5.0
-    A2:
-      cycle_s: 38.0
-      Y: 0.232
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
-      - 8.0
-      - 5.0
-    A3:
-      cycle_s: 38.0
-      Y: 0.221
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     A4:
-      cycle_s: 38.0
-      Y: 0.232
+      cycle_s: 40.0
+      Y: 0.245
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     B0:
-      cycle_s: 38.0
-      Y: 0.228
+      cycle_s: 40.0
+      Y: 0.242
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     B1:
-      cycle_s: 38.0
-      Y: 0.224
+      cycle_s: 40.0
+      Y: 0.238
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     B2:
-      cycle_s: 37.0
-      Y: 0.224
+      cycle_s: 39.0
+      Y: 0.237
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 7.0
+      - 8.0
       - 5.0
     B3:
-      cycle_s: 38.0
-      Y: 0.22
+      cycle_s: 40.0
+      Y: 0.231
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 9.0
+      - 5.0
+    B4:
+      cycle_s: 40.0
+      Y: 0.241
+      capped: false
+      greens_s:
+      - 9.0
+      - 5.0
+      - 9.0
+      - 5.0
+    C0:
+      cycle_s: 39.0
+      Y: 0.227
       capped: false
       greens_s:
       - 8.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
-    B4:
+    C1:
       cycle_s: 38.0
       Y: 0.229
       capped: false
@@ -98,1049 +128,1031 @@ plans:
       - 5.0
       - 8.0
       - 5.0
-    C0:
-      cycle_s: 38.0
-      Y: 0.215
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
-      - 8.0
-      - 5.0
-    C1:
-      cycle_s: 37.0
-      Y: 0.218
-      capped: false
-      greens_s:
-      - 8.0
-      - 5.0
-      - 7.0
-      - 5.0
     C2:
-      cycle_s: 37.0
-      Y: 0.223
+      cycle_s: 38.0
+      Y: 0.235
       capped: false
       greens_s:
-      - 7.0
+      - 8.0
       - 5.0
       - 8.0
       - 5.0
     C3:
-      cycle_s: 38.0
-      Y: 0.224
+      cycle_s: 40.0
+      Y: 0.237
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     C4:
-      cycle_s: 38.0
-      Y: 0.225
+      cycle_s: 40.0
+      Y: 0.238
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     D0:
-      cycle_s: 38.0
-      Y: 0.222
+      cycle_s: 40.0
+      Y: 0.236
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     D1:
-      cycle_s: 38.0
-      Y: 0.22
+      cycle_s: 39.0
+      Y: 0.234
       capped: false
       greens_s:
       - 8.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     D2:
-      cycle_s: 38.0
-      Y: 0.219
+      cycle_s: 40.0
+      Y: 0.23
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     D3:
-      cycle_s: 38.0
-      Y: 0.222
+      cycle_s: 40.0
+      Y: 0.235
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     D4:
-      cycle_s: 38.0
-      Y: 0.223
+      cycle_s: 40.0
+      Y: 0.236
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     E0:
-      cycle_s: 37.0
-      Y: 0.22
+      cycle_s: 39.0
+      Y: 0.231
       capped: false
       greens_s:
-      - 7.0
-      - 5.0
       - 8.0
+      - 5.0
+      - 9.0
       - 5.0
     E1:
-      cycle_s: 38.0
-      Y: 0.215
+      cycle_s: 40.0
+      Y: 0.228
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     E2:
-      cycle_s: 38.0
-      Y: 0.221
+      cycle_s: 40.0
+      Y: 0.236
       capped: false
       greens_s:
-      - 8.0
+      - 9.0
       - 5.0
-      - 8.0
+      - 9.0
       - 5.0
     E3:
-      cycle_s: 37.0
-      Y: 0.219
+      cycle_s: 39.0
+      Y: 0.232
       capped: false
       greens_s:
-      - 7.0
-      - 5.0
       - 8.0
+      - 5.0
+      - 9.0
       - 5.0
     E4:
-      cycle_s: 37.0
-      Y: 0.226
+      cycle_s: 39.0
+      Y: 0.239
       capped: false
       greens_s:
-      - 7.0
-      - 5.0
       - 8.0
+      - 5.0
+      - 9.0
       - 5.0
   medium:
     A0:
-      cycle_s: 45.0
-      Y: 0.444
+      cycle_s: 51.0
+      Y: 0.469
       capped: false
       greens_s:
-      - 12.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     A1:
-      cycle_s: 45.0
-      Y: 0.453
+      cycle_s: 52.0
+      Y: 0.479
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 12.0
+      - 15.0
       - 5.0
     A2:
-      cycle_s: 44.0
-      Y: 0.438
+      cycle_s: 51.0
+      Y: 0.461
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     A3:
-      cycle_s: 44.0
-      Y: 0.445
+      cycle_s: 51.0
+      Y: 0.469
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     A4:
-      cycle_s: 45.0
-      Y: 0.445
+      cycle_s: 51.0
+      Y: 0.472
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 12.0
+      - 15.0
       - 5.0
     B0:
-      cycle_s: 44.0
-      Y: 0.442
+      cycle_s: 52.0
+      Y: 0.468
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 15.0
       - 5.0
     B1:
-      cycle_s: 45.0
-      Y: 0.449
+      cycle_s: 52.0
+      Y: 0.472
       capped: false
       greens_s:
-      - 12.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 15.0
       - 5.0
     B2:
-      cycle_s: 44.0
-      Y: 0.437
+      cycle_s: 49.0
+      Y: 0.46
       capped: false
       greens_s:
-      - 11.0
+      - 13.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     B3:
-      cycle_s: 44.0
-      Y: 0.434
+      cycle_s: 50.0
+      Y: 0.458
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     B4:
-      cycle_s: 44.0
-      Y: 0.439
+      cycle_s: 51.0
+      Y: 0.464
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     C0:
-      cycle_s: 45.0
-      Y: 0.445
+      cycle_s: 51.0
+      Y: 0.473
       capped: false
       greens_s:
-      - 12.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     C1:
-      cycle_s: 45.0
-      Y: 0.451
+      cycle_s: 52.0
+      Y: 0.477
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 12.0
+      - 15.0
       - 5.0
     C2:
-      cycle_s: 45.0
-      Y: 0.442
+      cycle_s: 51.0
+      Y: 0.467
       capped: false
       greens_s:
-      - 12.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     C3:
-      cycle_s: 44.0
-      Y: 0.436
+      cycle_s: 50.0
+      Y: 0.461
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     C4:
-      cycle_s: 44.0
-      Y: 0.446
+      cycle_s: 51.0
+      Y: 0.471
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 15.0
       - 5.0
     D0:
-      cycle_s: 44.0
-      Y: 0.435
+      cycle_s: 50.0
+      Y: 0.46
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     D1:
-      cycle_s: 45.0
-      Y: 0.449
+      cycle_s: 51.0
+      Y: 0.474
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 12.0
+      - 15.0
       - 5.0
     D2:
-      cycle_s: 44.0
-      Y: 0.437
+      cycle_s: 50.0
+      Y: 0.462
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     D3:
-      cycle_s: 44.0
-      Y: 0.43
+      cycle_s: 50.0
+      Y: 0.455
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     D4:
-      cycle_s: 44.0
-      Y: 0.435
+      cycle_s: 50.0
+      Y: 0.46
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     E0:
-      cycle_s: 44.0
-      Y: 0.441
+      cycle_s: 51.0
+      Y: 0.466
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     E1:
-      cycle_s: 44.0
-      Y: 0.44
+      cycle_s: 50.0
+      Y: 0.463
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     E2:
-      cycle_s: 44.0
-      Y: 0.435
+      cycle_s: 50.0
+      Y: 0.459
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     E3:
-      cycle_s: 44.0
-      Y: 0.432
+      cycle_s: 50.0
+      Y: 0.457
       capped: false
       greens_s:
-      - 11.0
+      - 14.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
     E4:
-      cycle_s: 44.0
-      Y: 0.436
+      cycle_s: 51.0
+      Y: 0.461
       capped: false
       greens_s:
-      - 11.0
+      - 15.0
       - 5.0
-      - 11.0
+      - 14.0
       - 5.0
   high:
     A0:
-      cycle_s: 66.0
-      Y: 0.655
+      cycle_s: 85.0
+      Y: 0.691
       capped: false
       greens_s:
-      - 21.0
-      - 6.0
-      - 21.0
-      - 6.0
-    A1:
-      cycle_s: 69.0
-      Y: 0.667
-      capped: false
-      greens_s:
-      - 22.0
-      - 6.0
-      - 22.0
-      - 7.0
-    A2:
-      cycle_s: 70.0
-      Y: 0.667
-      capped: false
-      greens_s:
-      - 22.0
-      - 7.0
-      - 22.0
-      - 7.0
-    A3:
-      cycle_s: 70.0
-      Y: 0.67
-      capped: false
-      greens_s:
-      - 22.0
-      - 7.0
-      - 22.0
-      - 7.0
-    A4:
-      cycle_s: 67.0
-      Y: 0.657
-      capped: false
-      greens_s:
-      - 21.0
-      - 7.0
-      - 21.0
-      - 6.0
-    B0:
-      cycle_s: 68.0
-      Y: 0.664
-      capped: false
-      greens_s:
-      - 22.0
-      - 7.0
-      - 21.0
-      - 6.0
-    B1:
-      cycle_s: 69.0
-      Y: 0.663
-      capped: false
-      greens_s:
-      - 22.0
-      - 7.0
-      - 21.0
-      - 7.0
-    B2:
-      cycle_s: 70.0
-      Y: 0.669
-      capped: false
-      greens_s:
-      - 22.0
-      - 7.0
-      - 22.0
-      - 7.0
-    B3:
-      cycle_s: 68.0
-      Y: 0.66
-      capped: false
-      greens_s:
-      - 21.0
-      - 6.0
-      - 22.0
-      - 7.0
-    B4:
-      cycle_s: 64.0
-      Y: 0.643
-      capped: false
-      greens_s:
-      - 20.0
-      - 6.0
-      - 20.0
-      - 6.0
-    C0:
-      cycle_s: 68.0
-      Y: 0.661
-      capped: false
-      greens_s:
-      - 21.0
-      - 7.0
-      - 21.0
-      - 7.0
-    C1:
-      cycle_s: 67.0
-      Y: 0.656
-      capped: false
-      greens_s:
-      - 21.0
-      - 7.0
-      - 21.0
-      - 6.0
-    C2:
-      cycle_s: 68.0
-      Y: 0.659
-      capped: false
-      greens_s:
-      - 21.0
-      - 7.0
-      - 21.0
-      - 7.0
-    C3:
-      cycle_s: 67.0
-      Y: 0.658
-      capped: false
-      greens_s:
-      - 21.0
-      - 6.0
-      - 21.0
-      - 7.0
-    C4:
-      cycle_s: 69.0
-      Y: 0.669
-      capped: false
-      greens_s:
-      - 22.0
-      - 7.0
-      - 21.0
-      - 7.0
-    D0:
-      cycle_s: 68.0
-      Y: 0.657
-      capped: false
-      greens_s:
-      - 22.0
-      - 6.0
-      - 21.0
-      - 7.0
-    D1:
-      cycle_s: 66.0
-      Y: 0.649
-      capped: false
-      greens_s:
-      - 21.0
-      - 6.0
-      - 21.0
-      - 6.0
-    D2:
-      cycle_s: 68.0
-      Y: 0.66
-      capped: false
-      greens_s:
-      - 21.0
-      - 7.0
-      - 21.0
-      - 7.0
-    D3:
-      cycle_s: 67.0
-      Y: 0.655
-      capped: false
-      greens_s:
-      - 21.0
-      - 6.0
-      - 21.0
-      - 7.0
-    D4:
-      cycle_s: 68.0
-      Y: 0.664
-      capped: false
-      greens_s:
-      - 21.0
-      - 7.0
-      - 22.0
-      - 6.0
-    E0:
-      cycle_s: 67.0
-      Y: 0.653
-      capped: false
-      greens_s:
-      - 21.0
-      - 6.0
-      - 21.0
-      - 7.0
-    E1:
-      cycle_s: 66.0
-      Y: 0.65
-      capped: false
-      greens_s:
-      - 20.0
-      - 6.0
-      - 21.0
-      - 7.0
-    E2:
-      cycle_s: 65.0
-      Y: 0.649
-      capped: false
-      greens_s:
-      - 21.0
-      - 6.0
-      - 20.0
-      - 6.0
-    E3:
-      cycle_s: 67.0
-      Y: 0.659
-      capped: false
-      greens_s:
-      - 21.0
-      - 6.0
-      - 21.0
-      - 7.0
-    E4:
-      cycle_s: 68.0
-      Y: 0.663
-      capped: false
-      greens_s:
-      - 22.0
-      - 6.0
-      - 21.0
-      - 7.0
-  peak:
-    A0:
-      cycle_s: 79.0
-      Y: 0.707
-      capped: false
-      greens_s:
-      - 26.0
+      - 29.0
       - 8.0
-      - 25.0
+      - 28.0
       - 8.0
     A1:
-      cycle_s: 77.0
-      Y: 0.704
+      cycle_s: 90.0
+      Y: 0.705
       capped: false
       greens_s:
-      - 25.0
+      - 30.0
       - 8.0
-      - 25.0
-      - 7.0
+      - 30.0
+      - 10.0
     A2:
-      cycle_s: 79.0
-      Y: 0.71
+      cycle_s: 88.0
+      Y: 0.702
       capped: false
       greens_s:
-      - 26.0
-      - 8.0
-      - 25.0
-      - 8.0
+      - 29.0
+      - 9.0
+      - 29.0
+      - 9.0
     A3:
-      cycle_s: 81.0
-      Y: 0.719
+      cycle_s: 89.0
+      Y: 0.705
       capped: false
       greens_s:
-      - 26.0
-      - 7.0
-      - 27.0
+      - 30.0
+      - 9.0
+      - 29.0
       - 9.0
     A4:
-      cycle_s: 82.0
-      Y: 0.72
+      cycle_s: 86.0
+      Y: 0.691
       capped: false
       greens_s:
-      - 26.0
-      - 8.0
-      - 27.0
+      - 28.0
+      - 9.0
+      - 28.0
       - 9.0
     B0:
-      cycle_s: 77.0
-      Y: 0.7
+      cycle_s: 89.0
+      Y: 0.702
       capped: false
       greens_s:
-      - 25.0
-      - 8.0
-      - 24.0
-      - 8.0
+      - 30.0
+      - 9.0
+      - 29.0
+      - 9.0
     B1:
-      cycle_s: 78.0
-      Y: 0.704
-      capped: false
-      greens_s:
-      - 25.0
-      - 8.0
-      - 26.0
-      - 7.0
-    B2:
-      cycle_s: 81.0
-      Y: 0.719
-      capped: false
-      greens_s:
-      - 27.0
-      - 9.0
-      - 26.0
-      - 7.0
-    B3:
-      cycle_s: 74.0
-      Y: 0.69
-      capped: false
-      greens_s:
-      - 24.0
-      - 7.0
-      - 23.0
-      - 8.0
-    B4:
-      cycle_s: 78.0
-      Y: 0.709
-      capped: false
-      greens_s:
-      - 26.0
-      - 8.0
-      - 24.0
-      - 8.0
-    C0:
-      cycle_s: 83.0
-      Y: 0.723
-      capped: false
-      greens_s:
-      - 27.0
-      - 8.0
-      - 27.0
-      - 9.0
-    C1:
-      cycle_s: 78.0
+      cycle_s: 89.0
       Y: 0.703
       capped: false
       greens_s:
-      - 26.0
-      - 8.0
-      - 24.0
-      - 8.0
-    C2:
-      cycle_s: 84.0
-      Y: 0.723
-      capped: false
-      greens_s:
-      - 27.0
+      - 30.0
       - 9.0
-      - 28.0
-      - 8.0
-    C3:
-      cycle_s: 73.0
-      Y: 0.688
+      - 29.0
+      - 9.0
+    B2:
+      cycle_s: 90.0
+      Y: 0.708
       capped: false
       greens_s:
-      - 24.0
-      - 7.0
-      - 23.0
-      - 7.0
-    C4:
+      - 30.0
+      - 9.0
+      - 30.0
+      - 9.0
+    B3:
+      cycle_s: 88.0
+      Y: 0.698
+      capped: false
+      greens_s:
+      - 29.0
+      - 9.0
+      - 29.0
+      - 9.0
+    B4:
       cycle_s: 83.0
-      Y: 0.72
+      Y: 0.68
       capped: false
       greens_s:
-      - 27.0
-      - 8.0
-      - 26.0
-      - 10.0
-    D0:
-      cycle_s: 75.0
-      Y: 0.696
-      capped: false
-      greens_s:
-      - 24.0
-      - 7.0
-      - 25.0
-      - 7.0
-    D1:
-      cycle_s: 78.0
-      Y: 0.704
-      capped: false
-      greens_s:
-      - 24.0
-      - 8.0
-      - 26.0
-      - 8.0
-    D2:
-      cycle_s: 74.0
-      Y: 0.69
-      capped: false
-      greens_s:
-      - 24.0
-      - 7.0
-      - 24.0
-      - 7.0
-    D3:
-      cycle_s: 77.0
-      Y: 0.701
-      capped: false
-      greens_s:
-      - 24.0
-      - 8.0
-      - 26.0
-      - 7.0
-    D4:
-      cycle_s: 74.0
-      Y: 0.69
-      capped: false
-      greens_s:
-      - 24.0
-      - 8.0
-      - 23.0
-      - 7.0
-    E0:
-      cycle_s: 79.0
-      Y: 0.707
-      capped: false
-      greens_s:
-      - 25.0
-      - 8.0
-      - 26.0
-      - 8.0
-    E1:
-      cycle_s: 82.0
-      Y: 0.72
-      capped: false
-      greens_s:
-      - 27.0
-      - 7.0
       - 28.0
       - 8.0
-    E2:
-      cycle_s: 74.0
+      - 27.0
+      - 8.0
+    C0:
+      cycle_s: 88.0
+      Y: 0.698
+      capped: false
+      greens_s:
+      - 29.0
+      - 9.0
+      - 29.0
+      - 9.0
+    C1:
+      cycle_s: 86.0
       Y: 0.692
       capped: false
       greens_s:
-      - 24.0
-      - 7.0
-      - 24.0
-      - 7.0
-    E3:
-      cycle_s: 81.0
-      Y: 0.718
+      - 29.0
+      - 9.0
+      - 28.0
+      - 8.0
+    C2:
+      cycle_s: 88.0
+      Y: 0.698
       capped: false
       greens_s:
-      - 27.0
-      - 8.0
-      - 27.0
-      - 7.0
-    E4:
-      cycle_s: 79.0
-      Y: 0.71
+      - 29.0
+      - 9.0
+      - 29.0
+      - 9.0
+    C3:
+      cycle_s: 86.0
+      Y: 0.695
       capped: false
       greens_s:
-      - 25.0
+      - 29.0
       - 8.0
-      - 26.0
-      - 8.0
-  saturated:
-    A0:
-      cycle_s: 108.0
-      Y: 0.786
+      - 28.0
+      - 9.0
+    C4:
+      cycle_s: 92.0
+      Y: 0.712
       capped: false
       greens_s:
-      - 37.0
-      - 13.0
-      - 36.0
+      - 31.0
       - 10.0
-    A1:
-      cycle_s: 110.0
-      Y: 0.792
+      - 30.0
+      - 9.0
+    D0:
+      cycle_s: 87.0
+      Y: 0.696
       capped: false
       greens_s:
-      - 37.0
-      - 12.0
-      - 38.0
-      - 11.0
-    A2:
+      - 30.0
+      - 8.0
+      - 28.0
+      - 9.0
+    D1:
+      cycle_s: 83.0
+      Y: 0.685
+      capped: false
+      greens_s:
+      - 27.0
+      - 8.0
+      - 28.0
+      - 8.0
+    D2:
+      cycle_s: 87.0
+      Y: 0.698
+      capped: false
+      greens_s:
+      - 29.0
+      - 9.0
+      - 28.0
+      - 9.0
+    D3:
+      cycle_s: 85.0
+      Y: 0.69
+      capped: false
+      greens_s:
+      - 28.0
+      - 8.0
+      - 28.0
+      - 9.0
+    D4:
+      cycle_s: 89.0
+      Y: 0.704
+      capped: false
+      greens_s:
+      - 29.0
+      - 9.0
+      - 30.0
+      - 9.0
+    E0:
+      cycle_s: 85.0
+      Y: 0.69
+      capped: false
+      greens_s:
+      - 28.0
+      - 8.0
+      - 28.0
+      - 9.0
+    E1:
+      cycle_s: 85.0
+      Y: 0.689
+      capped: false
+      greens_s:
+      - 28.0
+      - 8.0
+      - 28.0
+      - 9.0
+    E2:
+      cycle_s: 83.0
+      Y: 0.686
+      capped: false
+      greens_s:
+      - 28.0
+      - 8.0
+      - 27.0
+      - 8.0
+    E3:
+      cycle_s: 87.0
+      Y: 0.697
+      capped: false
+      greens_s:
+      - 29.0
+      - 8.0
+      - 29.0
+      - 9.0
+    E4:
+      cycle_s: 87.0
+      Y: 0.699
+      capped: false
+      greens_s:
+      - 29.0
+      - 9.0
+      - 28.0
+      - 9.0
+  peak:
+    A0:
       cycle_s: 106.0
-      Y: 0.785
+      Y: 0.75
       capped: false
       greens_s:
-      - 36.0
-      - 11.0
-      - 36.0
-      - 11.0
-    A3:
-      cycle_s: 114.0
-      Y: 0.799
-      capped: false
-      greens_s:
-      - 39.0
-      - 12.0
-      - 40.0
-      - 11.0
-    A4:
-      cycle_s: 116.0
-      Y: 0.801
-      capped: false
-      greens_s:
-      - 40.0
-      - 12.0
-      - 40.0
-      - 12.0
-    B0:
-      cycle_s: 104.0
-      Y: 0.778
-      capped: false
-      greens_s:
-      - 35.0
+      - 37.0
       - 11.0
       - 35.0
       - 11.0
-    B1:
-      cycle_s: 113.0
-      Y: 0.798
-      capped: false
-      greens_s:
-      - 39.0
-      - 11.0
-      - 39.0
-      - 12.0
-    B2:
-      cycle_s: 109.0
-      Y: 0.788
-      capped: false
-      greens_s:
-      - 37.0
-      - 12.0
-      - 36.0
-      - 12.0
-    B3:
-      cycle_s: 111.0
-      Y: 0.794
-      capped: false
-      greens_s:
-      - 38.0
-      - 11.0
-      - 39.0
-      - 11.0
-    B4:
-      cycle_s: 109.0
-      Y: 0.79
-      capped: false
-      greens_s:
-      - 37.0
-      - 11.0
-      - 37.0
-      - 12.0
-    C0:
-      cycle_s: 103.0
-      Y: 0.777
+    A1:
+      cycle_s: 102.0
+      Y: 0.742
       capped: false
       greens_s:
       - 35.0
       - 11.0
       - 34.0
-      - 11.0
-    C1:
-      cycle_s: 109.0
-      Y: 0.788
+      - 10.0
+    A2:
+      cycle_s: 106.0
+      Y: 0.751
       capped: false
       greens_s:
       - 37.0
+      - 11.0
+      - 35.0
+      - 11.0
+    A3:
+      cycle_s: 111.0
+      Y: 0.764
+      capped: false
+      greens_s:
+      - 38.0
+      - 10.0
+      - 39.0
       - 12.0
+    A4:
+      cycle_s: 111.0
+      Y: 0.763
+      capped: false
+      greens_s:
       - 37.0
+      - 11.0
+      - 39.0
+      - 12.0
+    B0:
+      cycle_s: 101.0
+      Y: 0.738
+      capped: false
+      greens_s:
+      - 35.0
+      - 10.0
+      - 33.0
+      - 11.0
+    B1:
+      cycle_s: 102.0
+      Y: 0.74
+      capped: false
+      greens_s:
+      - 35.0
+      - 10.0
+      - 35.0
+      - 10.0
+    B2:
+      cycle_s: 110.0
+      Y: 0.761
+      capped: false
+      greens_s:
+      - 38.0
+      - 13.0
+      - 37.0
+      - 10.0
+    B3:
+      cycle_s: 97.0
+      Y: 0.73
+      capped: false
+      greens_s:
+      - 33.0
+      - 10.0
+      - 32.0
+      - 10.0
+    B4:
+      cycle_s: 103.0
+      Y: 0.745
+      capped: false
+      greens_s:
+      - 36.0
+      - 11.0
+      - 33.0
+      - 11.0
+    C0:
+      cycle_s: 113.0
+      Y: 0.767
+      capped: false
+      greens_s:
+      - 39.0
+      - 11.0
+      - 39.0
+      - 12.0
+    C1:
+      cycle_s: 103.0
+      Y: 0.744
+      capped: false
+      greens_s:
+      - 36.0
+      - 10.0
+      - 34.0
       - 11.0
     C2:
-      cycle_s: 118.0
-      Y: 0.805
-      capped: false
-      greens_s:
-      - 40.0
-      - 13.0
-      - 40.0
-      - 13.0
-    C3:
-      cycle_s: 117.0
-      Y: 0.804
-      capped: false
-      greens_s:
-      - 40.0
-      - 12.0
-      - 40.0
-      - 13.0
-    C4:
-      cycle_s: 116.0
-      Y: 0.801
+      cycle_s: 114.0
+      Y: 0.769
       capped: false
       greens_s:
       - 39.0
       - 12.0
       - 40.0
-      - 13.0
-    D0:
-      cycle_s: 101.0
-      Y: 0.773
+      - 11.0
+    C3:
+      cycle_s: 97.0
+      Y: 0.725
       capped: false
       greens_s:
-      - 35.0
-      - 11.0
+      - 33.0
+      - 10.0
+      - 32.0
+      - 10.0
+    C4:
+      cycle_s: 111.0
+      Y: 0.763
+      capped: false
+      greens_s:
+      - 38.0
+      - 10.0
+      - 37.0
+      - 14.0
+    D0:
+      cycle_s: 99.0
+      Y: 0.736
+      capped: false
+      greens_s:
+      - 34.0
+      - 10.0
       - 34.0
       - 9.0
     D1:
-      cycle_s: 110.0
-      Y: 0.79
+      cycle_s: 103.0
+      Y: 0.744
       capped: false
       greens_s:
+      - 34.0
+      - 11.0
       - 36.0
-      - 12.0
-      - 38.0
-      - 12.0
+      - 10.0
     D2:
-      cycle_s: 113.0
-      Y: 0.798
+      cycle_s: 99.0
+      Y: 0.731
       capped: false
       greens_s:
-      - 38.0
-      - 12.0
-      - 39.0
-      - 12.0
+      - 34.0
+      - 10.0
+      - 33.0
+      - 10.0
     D3:
-      cycle_s: 108.0
-      Y: 0.789
+      cycle_s: 101.0
+      Y: 0.741
       capped: false
       greens_s:
-      - 37.0
+      - 33.0
       - 11.0
-      - 37.0
-      - 11.0
+      - 36.0
+      - 9.0
     D4:
-      cycle_s: 112.0
-      Y: 0.796
+      cycle_s: 97.0
+      Y: 0.73
       capped: false
       greens_s:
-      - 39.0
+      - 34.0
       - 11.0
-      - 38.0
-      - 12.0
+      - 31.0
+      - 9.0
     E0:
-      cycle_s: 106.0
-      Y: 0.783
+      cycle_s: 104.0
+      Y: 0.746
       capped: false
       greens_s:
+      - 34.0
+      - 11.0
       - 36.0
       - 11.0
-      - 35.0
-      - 12.0
     E1:
-      cycle_s: 110.0
-      Y: 0.791
+      cycle_s: 109.0
+      Y: 0.757
       capped: false
       greens_s:
-      - 37.0
+      - 38.0
+      - 10.0
+      - 38.0
       - 11.0
-      - 38.0
-      - 12.0
     E2:
-      cycle_s: 113.0
-      Y: 0.797
+      cycle_s: 98.0
+      Y: 0.733
       capped: false
       greens_s:
-      - 38.0
+      - 34.0
+      - 9.0
+      - 33.0
+      - 10.0
+    E3:
+      cycle_s: 113.0
+      Y: 0.765
+      capped: false
+      greens_s:
+      - 40.0
       - 12.0
       - 39.0
-      - 12.0
-    E3:
-      cycle_s: 107.0
-      Y: 0.785
-      capped: false
-      greens_s:
-      - 36.0
-      - 11.0
-      - 37.0
-      - 11.0
+      - 10.0
     E4:
-      cycle_s: 108.0
-      Y: 0.788
+      cycle_s: 106.0
+      Y: 0.751
       capped: false
       greens_s:
-      - 36.0
-      - 12.0
+      - 35.0
+      - 11.0
       - 37.0
       - 11.0
+  saturated:
+    A0:
+      cycle_s: 145.0
+      Y: 0.83
+      capped: true
+      greens_s:
+      - 50.0
+      - 18.0
+      - 50.0
+      - 15.0
+    A1:
+      cycle_s: 145.0
+      Y: 0.836
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 16.0
+    A2:
+      cycle_s: 144.0
+      Y: 0.83
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    A3:
+      cycle_s: 143.0
+      Y: 0.845
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 15.0
+    A4:
+      cycle_s: 143.0
+      Y: 0.851
+      capped: true
+      greens_s:
+      - 50.0
+      - 15.0
+      - 50.0
+      - 16.0
+    B0:
+      cycle_s: 144.0
+      Y: 0.824
+      capped: false
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    B1:
+      cycle_s: 144.0
+      Y: 0.844
+      capped: true
+      greens_s:
+      - 50.0
+      - 15.0
+      - 50.0
+      - 17.0
+    B2:
+      cycle_s: 145.0
+      Y: 0.829
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 16.0
+    B3:
+      cycle_s: 143.0
+      Y: 0.839
+      capped: true
+      greens_s:
+      - 50.0
+      - 15.0
+      - 50.0
+      - 16.0
+    B4:
+      cycle_s: 145.0
+      Y: 0.836
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 17.0
+    C0:
+      cycle_s: 145.0
+      Y: 0.824
+      capped: false
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 17.0
+    C1:
+      cycle_s: 144.0
+      Y: 0.832
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 15.0
+    C2:
+      cycle_s: 145.0
+      Y: 0.849
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 16.0
+    C3:
+      cycle_s: 144.0
+      Y: 0.85
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    C4:
+      cycle_s: 145.0
+      Y: 0.848
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 17.0
+    D0:
+      cycle_s: 142.0
+      Y: 0.817
+      capped: false
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 14.0
+    D1:
+      cycle_s: 145.0
+      Y: 0.833
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 16.0
+    D2:
+      cycle_s: 145.0
+      Y: 0.841
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 17.0
+    D3:
+      cycle_s: 144.0
+      Y: 0.833
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    D4:
+      cycle_s: 144.0
+      Y: 0.845
+      capped: true
+      greens_s:
+      - 50.0
+      - 15.0
+      - 50.0
+      - 17.0
+    E0:
+      cycle_s: 145.0
+      Y: 0.83
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 17.0
+    E1:
+      cycle_s: 144.0
+      Y: 0.836
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    E2:
+      cycle_s: 144.0
+      Y: 0.842
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    E3:
+      cycle_s: 144.0
+      Y: 0.829
+      capped: true
+      greens_s:
+      - 50.0
+      - 16.0
+      - 50.0
+      - 16.0
+    E4:
+      cycle_s: 145.0
+      Y: 0.833
+      capped: true
+      greens_s:
+      - 50.0
+      - 17.0
+      - 50.0
+      - 16.0
   stress:
     A0:
       cycle_s: 144.0
-      Y: 0.881
+      Y: 0.931
       capped: true
       greens_s:
       - 50.0
@@ -1149,7 +1161,7 @@ plans:
       - 16.0
     A1:
       cycle_s: 144.0
-      Y: 0.876
+      Y: 0.927
       capped: true
       greens_s:
       - 50.0
@@ -1157,17 +1169,17 @@ plans:
       - 50.0
       - 16.0
     A2:
-      cycle_s: 144.0
-      Y: 0.877
+      cycle_s: 143.0
+      Y: 0.925
       capped: true
       greens_s:
       - 50.0
-      - 17.0
+      - 16.0
       - 50.0
       - 15.0
     A3:
       cycle_s: 144.0
-      Y: 0.877
+      Y: 0.929
       capped: true
       greens_s:
       - 50.0
@@ -1176,7 +1188,7 @@ plans:
       - 16.0
     A4:
       cycle_s: 144.0
-      Y: 0.882
+      Y: 0.931
       capped: true
       greens_s:
       - 50.0
@@ -1185,7 +1197,7 @@ plans:
       - 16.0
     B0:
       cycle_s: 144.0
-      Y: 0.889
+      Y: 0.94
       capped: true
       greens_s:
       - 50.0
@@ -1194,7 +1206,7 @@ plans:
       - 16.0
     B1:
       cycle_s: 144.0
-      Y: 0.888
+      Y: 0.938
       capped: true
       greens_s:
       - 50.0
@@ -1202,17 +1214,17 @@ plans:
       - 50.0
       - 17.0
     B2:
-      cycle_s: 144.0
-      Y: 0.897
+      cycle_s: 143.0
+      Y: 0.948
       capped: true
       greens_s:
       - 50.0
       - 16.0
       - 50.0
-      - 16.0
+      - 15.0
     B3:
       cycle_s: 144.0
-      Y: 0.88
+      Y: 0.929
       capped: true
       greens_s:
       - 50.0
@@ -1221,7 +1233,7 @@ plans:
       - 15.0
     B4:
       cycle_s: 144.0
-      Y: 0.876
+      Y: 0.927
       capped: true
       greens_s:
       - 50.0
@@ -1230,7 +1242,7 @@ plans:
       - 16.0
     C0:
       cycle_s: 144.0
-      Y: 0.884
+      Y: 0.933
       capped: true
       greens_s:
       - 50.0
@@ -1239,7 +1251,7 @@ plans:
       - 15.0
     C1:
       cycle_s: 144.0
-      Y: 0.881
+      Y: 0.929
       capped: true
       greens_s:
       - 50.0
@@ -1248,7 +1260,7 @@ plans:
       - 16.0
     C2:
       cycle_s: 144.0
-      Y: 0.888
+      Y: 0.94
       capped: true
       greens_s:
       - 50.0
@@ -1257,7 +1269,7 @@ plans:
       - 16.0
     C3:
       cycle_s: 143.0
-      Y: 0.872
+      Y: 0.92
       capped: true
       greens_s:
       - 50.0
@@ -1266,7 +1278,7 @@ plans:
       - 16.0
     C4:
       cycle_s: 145.0
-      Y: 0.895
+      Y: 0.946
       capped: true
       greens_s:
       - 50.0
@@ -1275,7 +1287,7 @@ plans:
       - 17.0
     D0:
       cycle_s: 144.0
-      Y: 0.865
+      Y: 0.915
       capped: true
       greens_s:
       - 50.0
@@ -1284,7 +1296,7 @@ plans:
       - 16.0
     D1:
       cycle_s: 145.0
-      Y: 0.888
+      Y: 0.938
       capped: true
       greens_s:
       - 50.0
@@ -1292,17 +1304,17 @@ plans:
       - 50.0
       - 16.0
     D2:
-      cycle_s: 143.0
-      Y: 0.889
+      cycle_s: 142.0
+      Y: 0.939
       capped: true
       greens_s:
       - 50.0
-      - 16.0
+      - 15.0
       - 50.0
       - 15.0
     D3:
       cycle_s: 145.0
-      Y: 0.881
+      Y: 0.929
       capped: true
       greens_s:
       - 50.0
@@ -1311,7 +1323,7 @@ plans:
       - 16.0
     D4:
       cycle_s: 144.0
-      Y: 0.897
+      Y: 0.946
       capped: true
       greens_s:
       - 50.0
@@ -1319,17 +1331,17 @@ plans:
       - 50.0
       - 17.0
     E0:
-      cycle_s: 144.0
-      Y: 0.876
+      cycle_s: 142.0
+      Y: 0.928
       capped: true
       greens_s:
       - 50.0
-      - 16.0
+      - 15.0
       - 50.0
-      - 16.0
+      - 15.0
     E1:
       cycle_s: 144.0
-      Y: 0.873
+      Y: 0.921
       capped: true
       greens_s:
       - 50.0
@@ -1338,7 +1350,7 @@ plans:
       - 16.0
     E2:
       cycle_s: 144.0
-      Y: 0.874
+      Y: 0.925
       capped: true
       greens_s:
       - 50.0
@@ -1347,7 +1359,7 @@ plans:
       - 16.0
     E3:
       cycle_s: 144.0
-      Y: 0.865
+      Y: 0.913
       capped: true
       greens_s:
       - 50.0
@@ -1355,11 +1367,11 @@ plans:
       - 50.0
       - 16.0
     E4:
-      cycle_s: 144.0
-      Y: 0.873
+      cycle_s: 143.0
+      Y: 0.923
       capped: true
       greens_s:
       - 50.0
-      - 17.0
+      - 16.0
       - 50.0
       - 15.0

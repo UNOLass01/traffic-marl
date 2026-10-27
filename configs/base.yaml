@@ -41,12 +41,22 @@ env:
 # Classical baselines (docs/decisions.md D28-D30).
 baselines:
   webster:
-    saturation_flow: 1800      # veh/h per lane
+    saturation_flow: measured  # veh/h per lane per movement type (D31), or one number for all
     max_cycle: 150             # s; also used when Y >= 1
-    lost_time_per_phase: null  # s per green phase; null = the scenario's yellow time
+    lost_time_per_phase: measured  # s per green phase: measured (D31), null = yellow time, or a number
     peak_window: 900           # s; `peak` plans use the busiest 15-minute flow, scaled to 1 h
     min_green: 5               # s, shared constraints (D13)
     max_green: 50              # s
+    discharge_test:            # saturated discharge test measuring s and the lost time (D31)
+      vehicles_per_lane: 40    # queued vehicles per serving lane (more than one green discharges)
+      buildup_s: 300           # s of red while the queue builds
+      green_s: 40              # s of green, then the scenario's yellow
+      startup_s: 10            # s; crossings after this (until the end of green) give s
+      clearance_s: 60          # s between tests
+      min_storage_m: 150       # m of approach (up to the previous signal) needed to test a movement
+      max_tests_per_type: 30   # tested movements per type (through, left, right) and scenario
+  max_pressure:
+    max_red: 120               # s, max-red variant of max-pressure (D32)
 
 metrics:
   teleport_flag_threshold: 0.01   # runs above this teleport rate are flagged

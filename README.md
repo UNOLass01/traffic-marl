@@ -18,7 +18,7 @@ extension studies parameter sharing without raw traffic data.
 | 1 | Scenarios and demand profiles | done |
 | 2 | Environment factory, observations, rewards | done |
 | 3 | Metrics | done |
-| 4 | Baselines | in review |
+| 4 | Baselines | done |
 | 5 | Independent MARL (IPPO) | — |
 | 6 | Coordinated variants | — |
 | 7 | CTDE (QMIX, MADDPG, MAPPO) | — |
@@ -144,14 +144,21 @@ Results: `results/<experiment>/<method>/<seed>/metrics.csv` + resolved config + 
 ### Baselines
 
 Fixed-time (SUMO's default program and Webster plans computed from the training demand),
-actuated, max-pressure, and a centralized single agent (MaskablePPO over the joint action). All
-run under the same constraints, episode rules and metrics as the learning agents.
+actuated, max-pressure (with and without a 120 s maximum red), and a centralized single agent
+(MaskablePPO over the joint action). All run under the same constraints, episode rules and
+metrics as the learning agents. Webster uses saturation flows and lost times measured in SUMO
+on each network with a saturated discharge test (docs/decisions.md D31).
 
 ```bash
+python -m trafficmarl baselines saturation all     # discharge test -> <scenario>/webster/saturation.yaml
 python -m trafficmarl baselines webster all        # Webster plans per scenario and profile
 python experiments/run_baselines.py                # evaluate all baselines (resumable)
 python analysis/baseline_table.py                  # results/tables/baselines.{csv,md}
+python analysis/webster_comparison.py              # Webster before/after the correction
 ```
+
+Learning methods are accepted against the best program-based baseline of each scenario and
+demand, with no worse 95th-percentile total delay (D33).
 
 ### Configuration
 

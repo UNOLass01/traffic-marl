@@ -9,12 +9,17 @@ For each traffic light and demand profile:
    training files. For the non-stationary ``peak`` profile the plan uses the
    busiest 15-minute window at that junction (by departure time), scaled to an
    hourly rate.
-2. **Critical flow ratios.** For each green phase p, y_p is the largest
-   lane flow / saturation flow (1800 veh/h/lane) among the lanes with a
-   protected ('G') movement in p; Y = sum of y_p.
+2. **Critical flow ratios.** Each movement's flow is divided by the saturation
+   flow of its type (through, left, right), measured in SUMO on the scenario's
+   own network (:mod:`trafficmarl.baselines.saturation`, D31), so a lane's
+   flow ratio is sum_m q_m / s_type(m). In practice flows are converted to
+   through-vehicle equivalents (q_m x s_through / s_type(m)) and divided by
+   s_through. For each green phase p, y_p is the largest lane flow ratio among
+   the lanes with a protected ('G') movement in p; Y = sum of y_p.
 3. **Cycle.** Webster's optimum C0 = (1.5 L + 5) / (1 - Y), where L is the lost
-   time per cycle (one lost time per green phase, by default the yellow time).
-   If Y >= 1 or C0 exceeds the cap (default 150 s), the capped cycle is used.
+   time per cycle: one lost time per green phase, measured (start-up lost time
+   + yellow - end gain, D31). If Y >= 1 or C0 exceeds the cap (default 150 s),
+   the capped cycle is used.
 4. **Greens.** The cycle minus all non-green phase time is split among green
    phases in proportion to y_p, then clipped to [min green, max green], the
    constraints shared by every method (D13).
@@ -36,6 +41,7 @@ import numpy as np
 import sumolib
 import yaml
 
+from trafficmarl.baselines.saturation import TYPES, load_measured, movement_types
 from trafficmarl.scenarios.tls import is_green_phase
 
 PROGRAM_ID = "webster"
@@ -101,8 +107,12 @@ def hourly_lane_flows(
     duration: float,
     bin_seconds: float,
     busiest_window: bool,
+    weights: dict[tuple[str, str], float] | None = None,
 ) -> dict[str, float]:
-    """Hourly flow per incoming lane: mean over the whole period, or the busiest bin."""
+    """Hourly flow per incoming lane: mean over the whole period, or the busiest bin.
+
+    ``weights`` converts each movement's vehicles into through-vehicle equivalents.
+    """
     if busiest_window and counts:
         busiest = max(counts, key=lambda b: sum(counts[b].values()))
         moves, hours = counts[busiest], bin_seconds / 3600.0
@@ -115,8 +125,9 @@ def hourly_lane_flows(
     flows: dict[str, float] = defaultdict(float)
     for move, n in moves.items():
         serving = lanes.get(move, set())
+        weight = weights.get(move, 1.0) if weights else 1.0
         for lane in serving:
-            flows[lane] += n / hours / len(serving)
+            flows[lane] += weight * n / hours / len(serving)
     return dict(flows)
 
 
@@ -183,19 +194,47 @@ def write_programs(
     ET.ElementTree(root).write(out, encoding="UTF-8", xml_declaration=True)
 
 
+def resolve_parameters(manifest, cfg: dict[str, Any]) -> tuple[dict[str, Any], dict[str, float]]:
+    """Saturation flow per movement type and lost time per phase, measured or configured.
+
+    Returns the plan config (``saturation_flow`` = the through value used as the
+    reference, numeric ``lost_time_per_phase``) and the flow per type.
+    """
+    cfg = dict(cfg)
+    measured: dict[str, Any] = {}
+    if "measured" in (cfg["saturation_flow"], cfg.get("lost_time_per_phase")):
+        measured = load_measured(manifest)
+    if cfg["saturation_flow"] == "measured":
+        by_type = {k: v["saturation_flow"] for k, v in measured["by_type"].items()}
+        through = by_type["through"]
+        saturation = {k: float(by_type.get(k, through)) for k in TYPES}
+    else:
+        saturation = {k: float(cfg["saturation_flow"]) for k in TYPES}
+    if cfg.get("lost_time_per_phase") == "measured":
+        cfg["lost_time_per_phase"] = float(measured["lost_time_per_phase_s"])
+    elif cfg.get("lost_time_per_phase") is None:
+        cfg["lost_time_per_phase"] = cfg["yellow_time"]
+    cfg["saturation_flow"] = saturation["through"]
+    return cfg, saturation
+
+
 def build_plans(
     manifest, profiles: list[str], cfg: dict[str, Any]
 ) -> dict[str, dict[str, SignalPlan]]:
     """Webster programs for every profile of a scenario, written to ``<scenario>/webster/``.
 
     ``cfg`` is ``baselines.webster`` plus ``yellow_time`` (the scenario's), used as the
-    lost time per phase when ``lost_time_per_phase`` is null.
+    lost time per phase when ``lost_time_per_phase`` is null. Measured values come
+    from ``<scenario>/webster/saturation.yaml`` (``baselines saturation`` command).
     """
-    cfg = dict(cfg)
-    if cfg.get("lost_time_per_phase") is None:
-        cfg["lost_time_per_phase"] = cfg["yellow_time"]
     net_file = manifest.path(manifest.net_file)
     net = sumolib.net.readNet(str(net_file), withPrograms=True)
+    cfg, saturation = resolve_parameters(manifest, cfg)
+    kinds = movement_types(net)
+    weights = {
+        tls: {move: saturation["through"] / saturation[kind] for move, kind in moves.items()}
+        for tls, moves in kinds.items()
+    }
     lanes = junction_lanes(net)
     phases = program_phases(net_file)
     tls_by_id = {tl.getID(): tl for tl in net.getTrafficLights()}
@@ -208,6 +247,7 @@ def build_plans(
             flows = hourly_lane_flows(
                 counts.get(tls, {}), lanes[tls], duration=manifest.duration,
                 bin_seconds=cfg["peak_window"], busiest_window=profile == "peak",
+                weights=weights.get(tls),
             )  # fmt: skip
             plans[tls] = plan_signal(tl, phases[tls], flows, cfg)
         write_programs(plans, phases, manifest.root / WEBSTER_DIR / f"{profile}.add.xml")
@@ -222,7 +262,11 @@ def build_plans(
             for tls, p in sorted(plans.items())
         }
     with (manifest.root / WEBSTER_DIR / "plans.yaml").open("w", encoding="utf-8") as fh:
-        yaml.safe_dump({"config": cfg, "plans": summary}, fh, sort_keys=False)
+        yaml.safe_dump(
+            {"config": cfg, "saturation_flow_by_type": saturation, "plans": summary},
+            fh,
+            sort_keys=False,
+        )
     return result
 
 

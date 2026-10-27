@@ -409,3 +409,138 @@ Each entry states the decision, the reason, and its impact on the code and the r
   baselines after seeing them.
 - **Impact:** Phase 5 must compare IPPO with max-pressure as well as Webster; the centralized
   budget can be extended on corridor and grid3x3 if the team wants a converged reference.
+
+### D32 — 2026-10-27 — Max-pressure with a maximum red (extra baseline)
+- **Decision:** a second max-pressure baseline, `max_pressure_maxred`, runs the same policy with
+  the environment's optional max-red mask (D19) at **120 s** (`baselines.max_pressure.max_red`):
+  when a phase would stay red longer than that, only overdue phases are allowed and max-pressure
+  picks the one with the largest pressure among them. The unconstrained `max_pressure` stays.
+  Both are reported in every table; the number of forced switches and of max-red violations
+  (when the minimum green prevents serving an overdue phase in time) is recorded per episode.
+- **Reason:** D30 showed max-pressure leaving phases red for up to 1,065 s (grid3x3) and 3,775 s
+  (LuST). A bounded-red variant shows how much of its advantage depends on starving a phase.
+- **Caveat:** the longest red is measured per green phase. A protected left phase can stay red
+  while its left turns still pass permissively ('g') in the through phase, so a long red is not
+  always starvation; the per-vehicle maximum and p95 waiting time measure what drivers suffer.
+- **Impact:** one more baseline (cheap: no training).
+
+### D33 — 2026-10-27 — Acceptance rule against the best program-based baseline (revises D27)
+- **Decision:** a MARL method is accepted on a scenario and demand when, under the D27
+  statistics, it (1) has a significantly lower mean waiting time than the **best program-based
+  baseline** of that scenario and demand, (2) has no higher 95th-percentile total delay per
+  vehicle, and (3) does not increase teleports or unfinished vehicles. "Best" is the program
+  (SUMO default fixed-time, corrected Webster, actuated) with the lowest mean waiting time across
+  seeds. An increase in (2) or (3) counts only if it is not seed noise (one-sided Welch
+  p < 0.05). Max-pressure is reported in every table as a strong reference; beating it is not
+  required.
+- **Tail metrics:** every result table reports, next to the means, the p95 and maximum waiting
+  time, the p95 total delay per vehicle and the longest red, because mean waiting alone hides
+  starvation (D30).
+- **Reason:** Webster is not always the strongest program (D30); a fixed single reference would
+  make acceptance depend on how well one baseline is tuned. The tail-delay condition rejects
+  policies that buy a lower mean by starving some vehicles.
+- **Impact:** `trafficmarl.metrics.stats.compare` (tail condition) and `best_program_baseline`;
+  `analysis/baseline_table.py` reports the verdict against the best program per row. This
+  replaces "beats Webster" in D27 and in the Phase 5 criterion.
+
+### D34 — 2026-10-27 — Ten seeds for LuST evaluations
+- **Decision:** every LuST evaluation uses **10 seeds** (SUMO seeds 0-9) instead of 5.
+- **Reason:** LuST has one evaluation route file per profile and a high variance between SUMO
+  seeds (95 % CI of ±14 s on a 40 s mean at medium demand with 5 seeds, D30).
+- **Impact:** LuST rows have n = 10; the other scenarios keep 5 seeds x their evaluation files.
+
+### D35 — 2026-10-27 — Centralized PPO at equal budget; the grid5x5 probe stays n = 1
+- **Decision:** the centralized baseline is compared with IPPO **at equal training budget**
+  (environment steps = joint decisions, same PPO hyperparameters). It is not extended now. Once
+  the final IPPO budget is fixed in Phase 5, corridor and grid3x3 are retrained with that budget
+  and 5 seeds as an overnight job. The 100k-step grid5x5 run stays a documented scalability probe
+  (n = 1), marked "probe" in every table and excluded from the acceptance rule.
+- **Reason:** comparing a centralized agent and IPPO only makes sense at the same sample budget;
+  the 300k-step corridor and grid3x3 curves had not plateaued (D30).
+- **Impact:** centralized rows in the Phase 4 tables are at 300k steps; they are replaced after
+  the overnight run.
+
+### D31 — 2026-10-27 — Webster with saturation flows and lost times measured in SUMO (revises D28)
+- **Decision:** the saturation flow per movement type and the lost time per phase are measured on
+  each scenario with a saturated discharge test (`python -m trafficmarl baselines saturation all`,
+  `src/trafficmarl/baselines/saturation.py`): one movement at a time in an empty network, a queue
+  longer than one green can discharge, 40 s of green then the yellow; s = crossings per second
+  from 10 s after the start of green to its end, per serving lane; lost time = start-up lost time
+  + yellow - end gain. Webster converts each movement's flow into through-vehicle equivalents
+  (q x s_through / s_type) and uses the measured lost time (`saturation_flow: measured`,
+  `lost_time_per_phase: measured`). Results (veh/h of green per lane; lost time per phase):
+
+  | Scenario | Through | Left | Right | Lost time (s) | Tests |
+  |---|---|---|---|---|---|
+  | single | 1,875 | 1,680 | 1,320 | 3.04 | 12 |
+  | corridor | 1,898 | 1,725 | 1,388 | 3.63 | 48 |
+  | grid3x3 | 1,894 | 1,728 | 1,360 | 3.53 | 90 |
+  | grid5x5 | 1,896 | 1,720 | 1,368 | 3.56 | 90 |
+  | lust | 1,890 | 2,012 | 1,971 | 4.91 | 48 |
+
+  On the synthetic networks, turns discharge slower than through traffic (turning speed), as in
+  practice; LuST's turns are as fast as its through movements (its connections keep higher
+  speeds and its vehicle types are more aggressive), but its start-up lost time is longer.
+- **LuST phase mapping verified** (`tests/test_baselines.py`): Webster programs keep the original
+  phase states and yellow durations and only change green durations; every link carrying training
+  demand is green in some phase; SUMO runs the Webster program on every LuST light.
+- **Old vs new** (`python analysis/webster_comparison.py`, `results/tables/webster_v1_v2.md`;
+  the v1 results are kept in `results/baselines_v1/`). Mean waiting (s), 5 seeds (LuST: 5 -> 10):
+
+  | | single M/H/P | corridor M/H/P | grid3x3 M/H/P | grid5x5 M/H/P | LuST M/H/P |
+  |---|---|---|---|---|---|
+  | Webster v1 (1800, L = yellow) | 14.4 / 45.5 / 47.0 | 22.2 / 32.3 / 31.4 | 39.2 / 62.4 / 72.8 | 68.7 / 92.0 / 95.9 | 56.8 / 163.2 / 113.2 |
+  | Webster v2 (measured) | 16.1 / 45.5 / 47.0 | 20.7 / 36.2 / 38.3 | 53.1 / 78.7 / 90.3 | 69.0 / 107.8 / 120.1 | 43.5 / 154.2 / 114.5 |
+  | SUMO default fixed-time | 20.2 / 42.4 / 45.9 | 33.1 / 62.8 / 54.6 | 47.9 / 64.4 / 64.1 | 75.6 / 92.8 / 89.0 | 41.6 / 105.5 / 100.4 |
+
+- **Why the corrected Webster is still weaker than SUMO's default program in some cases** (and
+  worse than v1 on the grids). The measured parameters are more faithful, but they raise Y and L
+  slightly, and Webster's cycle C0 = (1.5 L + 5) / (1 - Y) grows fast as Y approaches 1
+  (grid3x3 peak: 91-102 s -> 123-144 s). Three measured effects make longer cycles harmful here:
+  1. *C0 overestimates the best cycle even at an isolated intersection.* With the v2 splits
+     scaled to a fixed cycle (single, medium, 2 eval files): 40 s 17.0, 47 s 14.6, **54 s 14.1**,
+     65 s 15.9, 80 s 19.0, 90 s 21.9 s of waiting; C0 is 65 s. A likely cause is that left turns
+     also pass permissively ('g') during the through phase, while Webster charges all left flow
+     to the protected left phase, which inflates Y.
+  2. *On grids, Webster ignores coordination.* With zero offsets, waiting depends on the cycle
+     through progression between intersections 200 m apart, not only on delay at each light:
+     grid3x3 medium, common cycle 40 / 47 / 54 / 65 / 80 / 90 / 110 s -> 45.8 / 47.4 / 53.2 /
+     50.2 / 48.8 / 52.9 / 59.3 s. The v2 cycle (54 s) lands on a bad point of this irregular
+     curve and v1 (46-48 s) on a good one. Webster also gives each intersection its own cycle,
+     so lights drift relative to each other; SUMO's default program has one common 90 s cycle.
+  3. *Long cycles hurt at high demand.* grid3x3 peak, common cycle 47 / 54 / **65** / 80 / 90 /
+     110 s -> 75.1 / 59.3 / 54.9 / 61.4 / 63.8 / 71.9 s, against 90.3 s for Webster's 123-144 s
+     per-intersection cycles. Spillback is not the mechanism (lanes full < 3.1 % of the time).
+  On **LuST**, the correction helps at medium demand (56.8 -> 43.5 s, max wait 1,544 -> 980 s,
+  teleports 0.5 -> 0.2 %) but Webster stays behind the default program at high demand. Webster
+  splits each movement's flow equally among its lanes; in SUMO, 10 % of LuST's busy lanes carry
+  at least 1.7 times that share (lane choice for the next turn), so critical lane flows and the
+  greens they need are underestimated. Spillback is negligible there as well.
+- **Decision on use:** the corrected Webster (v2) is the Webster baseline from now on: its
+  inputs are measured rather than assumed, and tuning it further against the evaluation results
+  would be fitting a baseline to the test set. Its weaknesses are a known property of the formula
+  (isolated intersection, random arrivals, no coordination). Acceptance no longer depends on it:
+  the best program-based baseline (D33) is the actuated program in every scenario and demand.
+- **Impact:** `networks/*/webster/` regenerated (plans and `saturation.yaml`); all Phase 4
+  evaluations were rerun (the p95 total delay needed new runs anyway).
+
+### D36 — 2026-10-27 — Phase 4 baseline results after review (updates D30)
+- **Result:** with the corrected Webster (D31), the tail metrics (D33) and 10 LuST seeds (D34),
+  `results/tables/baselines.md` gives:
+  - The **best program-based baseline is the actuated program** in every scenario and demand; it
+    is the acceptance reference for the MARL methods (D33).
+  - **Max-pressure** beats it on 12 of 15 scenario-demand pairs. It fails on single high and
+    peak, where its p95 total delay is far higher (279 vs 115 s, 246 vs 197 s): it serves the
+    heavy through movements and leaves others waiting; on LuST peak its lower mean waiting
+    (76.7 vs 93.4 s) is not significant over 10 seeds.
+  - **Max-pressure with a 120 s max red** (D32) keeps the longest red at 128-133 s and still
+    beats the actuated program on corridor, grid3x3, grid5x5 and LuST medium, at a cost of 18-56 %
+    more waiting than unconstrained max-pressure. On single high and peak it is much worse
+    (p95 total delay 470 and 429 s): forcing the starved phases breaks long through greens at a
+    near-saturated isolated intersection. On LuST high it adds unfinished vehicles.
+  - **Centralized PPO** (300k steps, D35) beats the actuated program on corridor (all demands)
+    and grid3x3 medium and high, not on single (where it is worse at every demand) nor on grid3x3
+    peak. Its longest red is about 3,700 s in every scenario: it never uses the protected
+    left-turn phases and lets left turns go permissively, which the per-vehicle tail metrics show
+    to be costly at high demand (single high: max wait 959 s).
+- **Impact:** these numbers replace those of D30.

@@ -166,6 +166,8 @@ def delay_metrics(records: list[dict], departures: dict[str, float], end: float)
         "mean_time_loss": mean([r["time_loss"] for r in arrived]),
         "mean_insertion_delay": mean(insertion),
         "mean_total_delay": mean(total),
+        # Tail of the total delay over every vehicle due (never-inserted ones included).
+        "p95_total_delay": float(np.percentile(total, 95)) if total else 0.0,
         "total_delay_h": float(np.sum(total)) / 3600.0,
         "co2_total_kg": sum(r["co2_mg"] for r in records) / 1e6,
         "co2_per_vehicle_g": mean([r["co2_mg"] for r in records]) / 1e3,

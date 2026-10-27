@@ -122,7 +122,11 @@ de masquage de RLlib) et dans `info`. Il est réutilisé pour SB3 (MaskablePPO),
 - **Phases inexistantes** (*padding*) : toujours interdites.
 - **Rouge maximal** : non imposé par défaut (`env.max_red: null`, décision D19). Le **rouge le
   plus long subi par chaque phase** est mesuré et rapporté pour toutes les méthodes. Si on
-  l'impose, seules les phases qui dépasseraient la limite restent autorisées.
+  l'impose, seules les phases qui dépasseraient la limite restent autorisées. La variante
+  `max_pressure_maxred` de max-pressure l'impose à 120 s (`baselines.max_pressure.max_red`,
+  décision D32). Le rouge d'une phase protégée ne signifie pas toujours une privation : un
+  mouvement autorisé en vert permissif (`g`) dans une autre phase continue de passer. Le temps
+  d'attente maximal et au 95e centile par véhicule mesure la privation réellement subie.
 
 Une action interdite provoque une erreur au lieu d'être ignorée. Les pas où une contrainte était
 active (vert minimal, changement forcé par le vert maximal) sont comptés et rapportés.

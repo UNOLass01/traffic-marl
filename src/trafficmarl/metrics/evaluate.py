@@ -26,6 +26,7 @@ import pandas as pd
 
 from trafficmarl.metrics import episode as ep
 from trafficmarl.utils import paths
+from trafficmarl.utils.config import deep_merge
 from trafficmarl.utils.logging_utils import get_logger
 from trafficmarl.utils.run_info import write_run_info
 
@@ -40,6 +41,12 @@ CONTROLLERS: dict[str, dict[str, Any]] = {
     "actuated": {"control": "program", "additional": [ACTUATED]},
     "webster": {"control": "program", "additional": [WEBSTER]},
     "max_pressure": {"control": "agents", "policy": "max_pressure"},
+    # Max-pressure with the optional max-red constraint (D32); ``env`` overrides the config.
+    "max_pressure_maxred": {
+        "control": "agents",
+        "policy": "max_pressure",
+        "env": {"max_red": 120},
+    },  # fmt: skip
     # Needs ``checkpoint=<run_dir>/model.zip`` (trained with experiments/run_baselines.py).
     "centralized_ppo": {"control": "agents", "policy": "centralized_ppo"},
     "random": {"control": "agents", "policy": "random"},
@@ -91,7 +98,9 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
     from trafficmarl.scenarios.spec import Manifest, output_dir
 
     manifest = Manifest.load(output_dir(config["scenario"]))
-    if "checkpoint" in spec:  # per-seed checkpoints: "<dir>/{seed}/model.zip"
+    if spec.get("env"):  # controller-specific environment settings (e.g. max_red)
+        config = deep_merge(config, {"env": spec["env"]})
+    if "checkpoint" in spec:  # per-seed checkpoints: "<dir>/{seed}/..."
         spec = {**spec, "checkpoint": spec["checkpoint"].format(seed=seed)}
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
@@ -166,6 +175,8 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
         "max_green_forced": sum(c["max_green_forced"] for c in counters.values())
         if decisions
         else np.nan,
+        "max_red_forced": sum(c["max_red_forced"] for c in counters.values()),
+        "max_red_violations": sum(c["max_red_violations"] for c in counters.values()),
         "phase_changes_per_signal": timing["phase_changes_per_signal"],
         "communication_floats_per_step": floats_per_step,
         "communication_floats_total": floats_per_step * steps,

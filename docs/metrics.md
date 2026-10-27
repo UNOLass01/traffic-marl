@@ -14,7 +14,7 @@ dans son propre processus.
 | Attente maximale et 95e centile (s) | sur tous les véhicules insérés, arrivés ou non : mesure la privation de vert vue par les usagers |
 | Retard d'insertion (s) | `departDelay` des véhicules insérés ; pour un véhicule jamais inséré : fin − départ prévu |
 | Véhicules non terminés | encore dans le réseau à la fin + jamais insérés |
-| Retard total (s, véh·h) | retard d'insertion + temps perdu (`timeLoss`) pour les véhicules arrivés ou en cours ; fin − départ prévu pour les véhicules jamais insérés ; moyenne sur tous les véhicules dont le départ était prévu |
+| Retard total (s, véh·h) | retard d'insertion + temps perdu (`timeLoss`) pour les véhicules arrivés ou en cours ; fin − départ prévu pour les véhicules jamais insérés ; moyenne sur tous les véhicules dont le départ était prévu ; on rapporte aussi son 95e centile par véhicule |
 | Débit | nombre de véhicules arrivés à destination |
 | Temps de parcours, temps perdu (s) | véhicules arrivés |
 | CO₂ (kg, g/véhicule) | modèle d'émissions HBEFA de SUMO, tous les véhicules insérés |
@@ -33,13 +33,23 @@ et D26).
 
 Les statistiques portent sur les valeurs **par graine** (moyenne sur les fichiers d'évaluation de
 la graine) : moyenne, écart-type et intervalle de confiance à 95 % (loi de Student). Une méthode
-**bat** une référence (par défaut le plan fixe de Webster) si les deux conditions suivantes sont
-réunies (décision D27) :
+**bat** une référence si les conditions suivantes sont toutes réunies (décision D27, révisée par
+D33) :
 
 1. son temps d'attente moyen est plus faible, avec des intervalles de confiance à 95 % disjoints
    ou un test de Welch donnant p < 0,05 ;
-2. elle n'augmente ni les téléportations ni les véhicules non terminés : une hausse n'est retenue
-   que si elle n'est pas due au bruit entre graines (test de Welch unilatéral, p < 0,05).
+2. son 95e centile du retard total n'est pas plus élevé ;
+3. elle n'augmente ni les téléportations ni les véhicules non terminés.
+
+Une hausse (conditions 2 et 3) n'est retenue que si elle n'est pas due au bruit entre graines
+(test de Welch unilatéral, p < 0,05).
+
+La référence d'acceptation des méthodes MARL est, pour chaque scénario et chaque niveau de
+demande, **le meilleur plan de feux** parmi le plan fixe par défaut de SUMO, le plan de Webster
+(corrigé, D31) et le contrôle actionné : celui dont le temps d'attente moyen est le plus faible.
+Max-pressure figure dans tous les tableaux comme référence forte, mais le battre n'est pas exigé.
+Les tableaux rapportent aussi l'attente au 95e centile et maximale, le 95e centile du retard
+total et le rouge le plus long, car la moyenne seule masque la privation de vert (D30).
 
 ## Utilisation
 
