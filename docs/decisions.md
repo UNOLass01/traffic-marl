@@ -544,3 +544,60 @@ Each entry states the decision, the reason, and its impact on the code and the r
     left-turn phases and lets left turns go permissively, which the per-vehicle tail metrics show
     to be costly at high demand (single high: max wait 959 s).
 - **Impact:** these numbers replace those of D30.
+
+### D37 — 2026-10-27 — IPPO on RLlib 2.59 (new API stack) and compute device (settles D6)
+- **Decision:** IPPO is RLlib PPO with one policy (`shared`) for all agents, built from RLlib's
+  `ActionMaskingTorchRLModule` (masked logits; observation keys `observations`/`action_mask`).
+  Each environment runner is a Ray process holding one SUMO (libsumo) simulation; 6 runners.
+  PPO hyperparameters are those of the centralized baseline (lr 3e-4, gamma 0.99, GAE 0.95,
+  clip 0.2, entropy 0.01, 10 epochs, minibatch 256, 4,096 environment steps per update,
+  256x256 MLP), plus a value loss weight of 0.5 and gradient clipping at 0.5
+  (`configs/algorithms/ippo.yaml`). Budgets count **environment steps** (one decision of every
+  agent), which is what RLlib's batch size counts and the unit of the centralized baseline.
+  Evaluation is deterministic: the most likely allowed phase.
+- **Device:** CPU. On grid3x3 with 6 runners, steady-state training runs at **134 environment
+  steps/s on CPU against 93 on the GPU** (RTX 4060, 5 iterations each). The policy is small, so
+  host-device transfers cost more than the GPU saves; this is the same result as SB3 (D29).
+  `device` stays configurable.
+- **Runs:** `experiments/train.py` (one run) and `experiments/sweep.py` (configs x seeds, one
+  training at a time). Each run writes the resolved config with the actual device, the git
+  commit, `progress.csv`, one line per training episode (`episodes/`, with end reason, gridlock,
+  teleports and queue), TensorBoard logs, checkpoints every 10 iterations, and
+  `training_stats.json`.
+- **Smoke run:** 4k steps on single and on corridor finish, log, save a checkpoint that loads
+  for evaluation, and resume correctly when the budget is raised.
+- **Memory:** about 5.2 GB of 7.8 GB with 6 runners on grid3x3.
+
+### D38 — 2026-10-27 — Reward check protocol (waiting vs queue)
+- **Protocol:** IPPO, local reward, switch penalty c = 0.5 (D25), medium demand, single and
+  corridor, 3 seeds, `waiting` vs `queue` measure, 300k environment steps per run
+  (`configs/experiments/reward_check.yaml`). The learning curve is the mean halting queue per
+  intersection in each training episode (comparable across rewards, unlike the returns). Each
+  final policy is evaluated on the held-out files at medium, high and peak demand and judged
+  against the best program-based baseline (D33), next to max-pressure.
+- **Plateau rule:** the iteration curve of episode returns is cut into five equal parts; a run
+  has plateaued when the gain between the last two fifths is below 5 % of the gain between the
+  first and the last fifth. A run that has not plateaued is extended from its checkpoint
+  (`algorithm.total_env_steps`), and the final budget is reported.
+
+### D39 — 2026-11-05 — Reward check results (D38)
+- **Result:** all 12 runs (2 scenarios x 2 measures x 3 seeds) plateau within 300k environment
+  steps (gain in the last fifth <= 3.2 % of the total) with no training gridlock, so no budget
+  was extended. Curves: `results/figures/reward_check_curves.png`; tables:
+  `results/tables/reward_check.md` (`python analysis/reward_check.py`).
+- **The queue measure is better everywhere.** Mean waiting, queue reward vs waiting reward:
+  single 5.5 vs 12.0 s (medium), 37.6 vs 51.9 s (high), 32.3 vs 42.8 s (peak); corridor 8.9 vs
+  17.3 s, 13.0 vs 20.7 s, 14.1 vs 23.4 s. Its learning curves end at about half the halting
+  queue of the waiting reward, with smaller seed spread.
+- **Against the acceptance rule (D33), with the queue reward:** IPPO beats the actuated program
+  on single medium and on corridor at every demand, at the level of max-pressure (e.g. corridor
+  medium 8.9 vs 9.7 s, p95 total delay 45.2 vs 45.7 s). It fails on **single high and peak**:
+  lower mean waiting than the actuated program (37.6 vs 42.4 s, 32.3 vs 43.7 s) but a much
+  higher p95 total delay (506 vs 115 s, 401 vs 197 s), the same failure as max-pressure (D36).
+  Throughput is unchanged in every case (no vehicle held out of the network).
+- **Starvation:** the longest red is about 3,700 s for every IPPO run, as for centralized PPO
+  (D36): some phases are never served during an episode. Policies are trained on medium demand
+  only, so high and peak are also out-of-distribution tests.
+- **Resume fix:** the last run (corridor, queue, seed 2) was interrupted at iteration 24 with a
+  checkpoint at iteration 20; restarting now cuts `progress.csv` and the episode logs back to the
+  checkpoint (`rollback_logs`) so that lost iterations are not counted twice.

@@ -1,0 +1,18 @@
+# Phase 5 reward check (D38): IPPO, local reward, medium demand, waiting vs queue measure,
+# single and corridor, 3 seeds, 300k environment steps each (extended if not plateaued).
+#   python experiments/sweep.py --config configs/experiments/reward_check.yaml
+seeds: [0, 1, 2]
+evaluate: true
+runs:
+  - config: configs/experiments/ippo_single.yaml
+    overrides: [experiment.name=reward_check_single, experiment.method=ippo_waiting,
+                env.reward.measure=waiting]
+  - config: configs/experiments/ippo_single.yaml
+    overrides: [experiment.name=reward_check_single, experiment.method=ippo_queue,
+                env.reward.measure=queue]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.name=reward_check_corridor, experiment.method=ippo_waiting,
+                env.reward.measure=waiting]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.name=reward_check_corridor, experiment.method=ippo_queue,
+                env.reward.measure=queue]

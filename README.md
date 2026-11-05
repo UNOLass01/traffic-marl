@@ -19,7 +19,7 @@ extension studies parameter sharing without raw traffic data.
 | 2 | Environment factory, observations, rewards | done |
 | 3 | Metrics | done |
 | 4 | Baselines | done |
-| 5 | Independent MARL (IPPO) | — |
+| 5 | Independent MARL (IPPO) | in progress |
 | 6 | Coordinated variants | — |
 | 7 | CTDE (QMIX, MADDPG, MAPPO) | — |
 | 8 | Full experiment matrix | — |
@@ -159,6 +159,19 @@ python analysis/webster_comparison.py              # Webster before/after the co
 
 Learning methods are accepted against the best program-based baseline of each scenario and
 demand, with no worse 95th-percentile total delay (D33).
+
+### Training (MARL)
+
+IPPO (RLlib, one shared action-masked policy) is trained from an experiment config; each run
+writes its config, git commit, progress, episode log, TensorBoard logs and checkpoints to
+`results/<experiment>/<method>/<seed>/`.
+
+```bash
+python experiments/train.py --config configs/experiments/ippo_single.yaml --seed 0 --evaluate
+python experiments/train.py --config ... --seed 0 env.reward.measure=queue experiment.method=ippo_queue
+python experiments/sweep.py --config configs/experiments/reward_check.yaml   # configs x seeds
+python analysis/reward_check.py                    # learning curves + evaluation table
+```
 
 ### Configuration
 
