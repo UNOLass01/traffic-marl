@@ -20,7 +20,7 @@ extension studies parameter sharing without raw traffic data.
 | 3 | Metrics | done |
 | 4 | Baselines | done |
 | 5 | Independent MARL (IPPO) | done |
-| 6 | Coordinated variants | — |
+| 6 | Coordinated variants | in progress |
 | 7 | CTDE (QMIX, MADDPG, MAPPO) | — |
 | 8 | Full experiment matrix | — |
 | 9 | Federated extension | — |
@@ -173,6 +173,8 @@ python experiments/train.py --config ... --seed 0 env.reward.measure=waiting exp
 python experiments/sweep.py --config configs/experiments/reward_check.yaml   # configs x seeds
 python experiments/sweep.py --config configs/experiments/maxred_check.yaml
 python analysis/reward_check.py      # results/figures/reward_check_curves.png, tables/reward_check.md
+python experiments/sweep.py --config configs/experiments/coordination.yaml   # Phase 6
+python analysis/coordination.py      # results/figures/coordination_curves.png, tables/coordination.md
 ```
 
 Phase 5 result (D39-D42): IPPO beats fixed-time on single and corridor at every demand, and

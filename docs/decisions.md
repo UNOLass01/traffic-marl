@@ -644,3 +644,28 @@ Each entry states the decision, the reason, and its impact on the code and the r
 - **Status:** IPPO (queue reward, max red) beats fixed-time on mean waiting in every single and
   corridor case (the Phase 5 criterion) and passes D33 on 4 of 6 scenario-demand pairs. The two
   failures are single high and peak, demands the policy was not trained on.
+
+### D43 — 2026-11-05 — Phase 6 protocol (coordination) and communication accounting
+- **Protocol:** four IPPO variants with one shared policy, the queue reward and a 220 s max red
+  (D40), medium demand, corridor and grid3x3, 3 seeds, 300k environment steps per run, extended
+  from the checkpoint if not plateaued (D38 rule): `ippo_local` (independent, no coordination),
+  `ippo_neighborhood` (implicit, alpha = 0.5), `ippo_global` (implicit, network mean) and
+  `ippo_extended` (explicit: neighbours' messages in the observation, local reward)
+  (`configs/experiments/coordination.yaml`). Each final policy is evaluated on the held-out
+  route files at medium, high and peak demand. A variant improves on independent IPPO when its
+  mean waiting time is significantly lower (D27 statistics) without lower throughput.
+- **Seeds:** 3 seeds for the comparison, as in the reward check; the full 5-seed matrix is
+  Phase 8.
+- **Communication:** reported in floats per decision step, at execution and during training
+  (`coordination/communication.py`). Only the neighbour observation costs at execution (one
+  message of 2 + P floats per directed neighbour link). Shared rewards cost only in training:
+  one float per directed link for `neighborhood`, two per agent through an aggregator for
+  `global` (cheaper than all-to-all).
+- **Reproducibility note:** IPPO training is seeded (Python, NumPy, PyTorch, RLlib, SUMO) but
+  not bitwise reproducible: two runs with the same config and seed (`ippo_queue_maxred` seed 0
+  in D41 and `ippo_local` seed 0 here) give episode returns that differ from the second
+  iteration (-4,205 vs -4,197) and end at 10.8 vs 10.1 s mean waiting on corridor medium.
+  Several environment runners and multithreaded CPU arithmetic make the sample order and float
+  sums vary between runs. The difference is smaller than the spread between seeds, which is why
+  results are reported as mean and confidence interval over seeds rather than single runs.
+  Evaluation of a given checkpoint is deterministic.

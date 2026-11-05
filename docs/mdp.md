@@ -102,6 +102,13 @@ décision. Le volume total échangé par pas de décision (somme sur tous les ag
 voisins) est de 36 nombres pour `corridor`, 144 pour `grid3x3`, 480 pour `grid5x5` et 324 pour
 `lust`. Ces volumes seront comparés au coût de l'agrégation fédérée (phase 9).
 
+Les récompenses partagées (section 4) ne coûtent qu'**à l'entraînement** : une politique
+entraînée n'utilise plus de récompense. `neighborhood` envoie le terme de trafic de chaque agent
+à chacun de ses voisins (1 nombre par lien orienté : 6 pour `corridor`, 24 pour `grid3x3`, 80
+pour `grid5x5`) ; `global` passe par un agrégateur, auquel chaque agent envoie son terme et dont
+il reçoit la moyenne (2 nombres par agent : 8, 18 et 50). L'évaluation rapporte les deux volumes,
+à l'exécution et à l'entraînement (`coordination/communication.py`, décision D43).
+
 ## 3. Actions et contraintes
 
 **Action.** Chaque agent choisit la **prochaine phase verte** parmi P = 4 (espace discret
