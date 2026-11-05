@@ -16,3 +16,7 @@ algorithm:
 # SB3 MLP updates are faster on CPU than on the GPU here (grid3x3: 149 vs 109
 # steps/s, docs/decisions.md D29).
 device: cpu
+# Settings of the trained Phase 4 baseline (D35), pinned when the defaults changed (D40).
+env:
+  reward:
+    measure: waiting

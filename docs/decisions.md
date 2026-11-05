@@ -601,3 +601,26 @@ Each entry states the decision, the reason, and its impact on the code and the r
 - **Resume fix:** the last run (corridor, queue, seed 2) was interrupted at iteration 24 with a
   checkpoint at iteration 20; restarting now cuts `progress.csv` and the episode logs back to the
   checkpoint (`rollback_logs`) so that lost iterations are not counted twice.
+
+### D40 — 2026-11-05 — Queue reward by default; 220 s max red for learning agents (after D39)
+- **Decision:** (1) the default traffic term is the **queue** measure (`env.reward.measure:
+  queue` in `configs/base.yaml`); `waiting` stays available for the reward ablation.
+  (2) Learning agents (IPPO and the later MARL methods) run with a **maximum red of 220 s**
+  (`env.max_red` in `configs/algorithms/ippo.yaml`).
+- **Reason:** (1) D39: the queue measure gives about half the mean waiting time of the waiting
+  measure on single and corridor at every demand, with the same throughput. (2) Without it, IPPO
+  never serves some phases (longest red about 3,700 s), which makes its p95 total delay on single
+  high and peak 2-4 times that of the actuated program. 220 s is above the longest red of every
+  program-based baseline (at most 147 s, actuated on single peak; the actuated cycle is bounded
+  by about 212 s), so the constraint never binds them and D19's equal-constraints argument holds.
+- **Actual bound:** phases that become overdue together are served one after the other, so a
+  phase can wait up to `max_red + min_green + yellow` (228 s synthetic, 229 s LuST). Measured
+  from SUMO's own signal states under a policy that starves two phases: 1,500 s without max red,
+  228-229 s with it, and the environment's longest-red bookkeeping agrees to the second
+  (`tests/test_env_sim.py::test_max_red_bounds_starvation`).
+- **Impact:** settings of earlier runs are pinned so they still reproduce: the reward-check
+  sweep sets `env.max_red=null` and its measure, and the centralized PPO baseline (D35) keeps
+  `env.reward.measure: waiting`. The max-red runs (`configs/experiments/maxred_check.yaml`,
+  method `ippo_queue_maxred`) are reported next to D39 in `results/tables/reward_check.md`.
+  For the Phase 8 main comparison, centralized PPO must be retrained with the same reward and
+  max red as the MARL methods.

@@ -2,7 +2,9 @@
 
 * ``random``: uniform over the valid phases;
 * ``keep``: keep the current phase whenever allowed (exercises the maximum green);
-* ``switch``: move to the next valid phase whenever allowed (exercises the minimum green).
+* ``switch``: move to the next valid phase whenever allowed (exercises the minimum green);
+* ``lowest``: the lowest-numbered valid phase. It alternates between the first two phases and
+  starves the others unless the maximum red forces them (exercises ``env.max_red``).
 """
 
 from __future__ import annotations
@@ -12,7 +14,7 @@ from collections.abc import Callable
 import numpy as np
 
 Policy = Callable[[dict[str, np.ndarray], dict[str, int]], dict[str, int]]
-POLICIES = ("random", "keep", "switch")
+POLICIES = ("random", "keep", "switch", "lowest")
 
 
 def _next_valid(mask: np.ndarray, current: int) -> int:
@@ -41,6 +43,8 @@ def make_policy(name: str, seed: int = 0) -> Callable[[dict, dict[str, int]], di
                 )
             elif name == "switch":
                 actions[agent] = _next_valid(mask, current[agent])
+            elif name == "lowest":
+                actions[agent] = int(np.flatnonzero(mask)[0])
             else:
                 raise ValueError(f"Unknown policy '{name}' (expected one of {POLICIES})")
         return actions

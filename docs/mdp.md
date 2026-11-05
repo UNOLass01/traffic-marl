@@ -122,7 +122,14 @@ de masquage de RLlib) et dans `info`. Il est réutilisé pour SB3 (MaskablePPO),
 - **Phases inexistantes** (*padding*) : toujours interdites.
 - **Rouge maximal** : non imposé par défaut (`env.max_red: null`, décision D19). Le **rouge le
   plus long subi par chaque phase** est mesuré et rapporté pour toutes les méthodes. Si on
-  l'impose, seules les phases qui dépasseraient la limite restent autorisées. La variante
+  l'impose, seules les phases qui dépasseraient la limite restent autorisées. Les agents
+  appris (IPPO) l'imposent à **220 s** (`configs/algorithms/ippo.yaml`, décision D40) : sans
+  lui, ils ne servent jamais certaines phases (rouge le plus long d'environ 3 700 s). Les plans
+  fixes, Webster et actionnés ne dépassent jamais 147 s de rouge : la contrainte ne les
+  limiterait pas, la comparaison reste donc équitable. Des phases en retard au même moment sont
+  servies l'une après l'autre : une phase peut donc attendre jusqu'à max_red + vert minimal +
+  jaune (228 s, 229 s sur LuST), ce que vérifie un test sur les états des feux enregistrés par
+  SUMO. La variante
   `max_pressure_maxred` de max-pressure l'impose à 120 s (`baselines.max_pressure.max_red`,
   décision D32). Le rouge d'une phase protégée ne signifie pas toujours une privation : un
   mouvement autorisé en vert permissif (`g`) dans une autre phase continue de passer. Le temps
@@ -156,12 +163,13 @@ durent de 6 à 33 s, et les plans actionnés de 5 à 50 s.
 Le terme de trafic local d'un agent est calculé sur la même approche de 200 m que l'observation
 (`env.reward.measure`) :
 
-- `waiting` (par défaut) : moins la variation, sur un pas de décision, du temps d'attente cumulé
+- `waiting` : moins la variation, sur un pas de décision, du temps d'attente cumulé
   des véhicules présents sur l'approche, divisée par **100 s**. Un véhicule qui quitte l'approche
   emporte son temps d'attente : vider une file est donc récompensé. C'est l'idée de la
   récompense `diff-waiting-time` de SUMO-RL, appliquée à toute l'approche ;
-- `queue` : moins le nombre de véhicules à l'arrêt sur l'approche, rapporté à la capacité d'une
-  voie ;
+- `queue` (par défaut, décision D40) : moins le nombre de véhicules à l'arrêt sur l'approche,
+  rapporté à la capacité d'une voie. Il donne un temps d'attente moyen environ deux fois plus
+  faible que `waiting` sur single et corridor (décision D39) ;
 - `pressure` : moins la valeur absolue de (véhicules en approche − véhicules en sortie),
   rapportée à la capacité.
 

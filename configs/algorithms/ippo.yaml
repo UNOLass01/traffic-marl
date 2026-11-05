@@ -20,3 +20,5 @@ algorithm:
   fcnet_hiddens: [256, 256]
   fcnet_activation: tanh
   checkpoint_every: 10         # iterations
+env:
+  max_red: 220                 # s; learning agents only (D40)

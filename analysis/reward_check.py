@@ -1,4 +1,5 @@
-"""Phase 5 reward check: IPPO with the waiting vs the queue reward (docs/decisions.md D38).
+"""Phase 5 reward check: IPPO with the waiting vs the queue reward (docs/decisions.md D38),
+and the queue reward with a 220 s max red (D40).
 
 Produces, from ``results/reward_check_<scenario>/``:
 
@@ -37,6 +38,7 @@ SCENARIOS = ["single", "corridor"]
 VARIANTS = {
     "ippo_waiting": ("waiting reward", "#2a78d6"),
     "ippo_queue": ("queue reward", "#eb6834"),
+    "ippo_queue_maxred": ("queue reward, max red 220 s", "#1baa7c"),
 }
 BASELINES = ["fixed_time", "webster", "actuated", "max_pressure", "max_pressure_maxred",
              "centralized_ppo"]  # fmt: skip

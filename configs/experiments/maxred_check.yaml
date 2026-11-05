@@ -1,0 +1,13 @@
+# Phase 5 max-red check (D40): IPPO, local queue reward, max red 220 s, medium demand,
+# single and corridor, 3 seeds, 300k environment steps each. Compared with the reward-check
+# runs without max red (D39) in the same results folders.
+#   python experiments/sweep.py --config configs/experiments/maxred_check.yaml
+seeds: [0, 1, 2]
+evaluate: true
+runs:
+  - config: configs/experiments/ippo_single.yaml
+    overrides: [experiment.name=reward_check_single, experiment.method=ippo_queue_maxred,
+                env.reward.measure=queue, env.max_red=220]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.name=reward_check_corridor, experiment.method=ippo_queue_maxred,
+                env.reward.measure=queue, env.max_red=220]

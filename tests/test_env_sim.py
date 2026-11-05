@@ -95,6 +95,52 @@ def test_observations_and_masks_well_formed(proofs, scenario):
             assert sum(c["min_green_active"] for c in counters.values()) > 0
 
 
+# ------------------------------------------------------------ maximum red
+MAX_RED = 220
+MAX_RED_SECONDS = 900
+
+
+def max_red_job(scenario: str, max_red: int | None) -> dict:
+    """Longest red of every green phase, measured by SUMO, under the starving ``lowest`` policy."""
+    from trafficmarl.envs.rollout import green_intervals, run_rollout
+
+    overrides = {"env": {"profile": "high", "max_red": max_red}}
+    config = experiment_config(scenario, overrides)
+    with tempfile.TemporaryDirectory() as tmp:
+        result = run_rollout(
+            config, policy="lowest", split="eval", seed=1, max_seconds=MAX_RED_SECONDS,
+            record_tls_states=Path(tmp),
+        )  # fmt: skip
+        intervals = green_intervals(result["tls_states_file"], result["green_states"])
+    end = MAX_RED_SECONDS
+    sumo_red = 0.0
+    for tls, runs in intervals.items():
+        for state in set(result["green_states"][tls]):
+            last_end, longest = 0.0, 0.0
+            for s, start, length, _ in runs:
+                if s == state:
+                    longest, last_end = max(longest, start - last_end), start + length
+            sumo_red = max(sumo_red, longest, end - last_end)
+    env_red = max(r for tls in result["episode"]["longest_red"].values() for r in tls.values())
+    return {"sumo_red": sumo_red, "env_red": env_red, "env_cfg": config["env"],
+            "yellow": config["scenario"]["signals"]["yellow_time"]}  # fmt: skip
+
+
+@pytest.mark.parametrize("scenario", ["single", "lust"])
+def test_max_red_bounds_starvation(scenario):
+    """Ground truth from SUMO: the max-red mask ends the starvation the ``lowest`` policy causes.
+
+    Phases that become overdue together are served one after the other, so a
+    phase can wait one more minimum green and yellow beyond ``max_red`` (D40).
+    """
+    free = _in_process(max_red_job, scenario, None)
+    bounded = _in_process(max_red_job, scenario, MAX_RED)
+    assert free["sumo_red"] >= MAX_RED_SECONDS - 1  # some phase never served
+    slack = bounded["env_cfg"]["min_green"] + bounded["yellow"]
+    assert MAX_RED <= bounded["sumo_red"] <= MAX_RED + slack
+    assert bounded["env_red"] == pytest.approx(bounded["sumo_red"], abs=1)  # bookkeeping agrees
+
+
 # ------------------------------------------------------------ episode ends
 def end_job(scenario: str, profile: str, overrides: dict, invalid_first_action: bool = False):
     from trafficmarl.envs.constraints import InvalidActionError
@@ -129,6 +175,12 @@ def end_job(scenario: str, profile: str, overrides: dict, invalid_first_action: 
     }
 
 
+def _default_reward_scale(scenario: str) -> float:
+    """Measured per-step std of the traffic term for the default reward measure (D24)."""
+    config = experiment_config(scenario)
+    return config["scenario"]["reward_scale"][config["env"]["reward"]["measure"]]
+
+
 def test_gridlock_terminates_with_penalty():
     # No vehicle can reach its destination in 5 s, so the 5 s window detects "gridlock".
     out = _in_process(end_job, "single", "medium", {"simulation": {"gridlock_window": 5}})
@@ -139,8 +191,7 @@ def test_gridlock_terminates_with_penalty():
         out["step_reward_without_terminal"] - out["expected_penalty"]
     )
     # The default cap (100 x the measured per-step std) is what limits the penalty here.
-    scale = experiment_config("single")["scenario"]["reward_scale"]["waiting"]
-    assert out["expected_penalty"] == pytest.approx(100 * scale)
+    assert out["expected_penalty"] == pytest.approx(100 * _default_reward_scale("single"))
 
 
 def test_uncapped_penalty_exceeds_cap():
@@ -149,10 +200,7 @@ def test_uncapped_penalty_exceeds_cap():
         "env": {"reward": {"gridlock_penalty_cap_std": None}},
     }
     out = _in_process(end_job, "single", "medium", overrides)
-    assert (
-        out["expected_penalty"]
-        > 100 * experiment_config("single")["scenario"]["reward_scale"]["waiting"]
-    )
+    assert out["expected_penalty"] > 100 * _default_reward_scale("single")
 
 
 def test_time_limit_truncates_without_penalty():
