@@ -24,6 +24,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from trafficmarl.coordination.communication import floats_per_step
 from trafficmarl.metrics import episode as ep
 from trafficmarl.utils import paths
 from trafficmarl.utils.config import deep_merge
@@ -132,8 +133,15 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
             obs, _, _, _, infos = env.step(actions)
             if infos:
                 summary = next(iter(infos.values())).get("episode", summary)
-        n_neighbour_links = sum(len(t.neighbours) for t in env.spec.topology.values())
-        message_dim, extended = env.spec.message_dim, env.spec.extended
+        communication = floats_per_step(
+            n_agents=len(env.spec.topology),
+            n_links=sum(len(t.neighbours) for t in env.spec.topology.values()),
+            message_dim=env.spec.message_dim,
+            extended=env.spec.extended,
+            reward_type=config["env"]["reward"]["type"],
+        )
+        if spec["control"] != "agents":
+            communication = {"execution": 0, "training": 0}
         env.close()  # flushes tripinfo (including unfinished vehicles) and summary
 
         end = float(summary["sim_time"])
@@ -150,9 +158,6 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
     counters = summary["constraints"]
     decisions = sum(c["decisions"] for c in counters.values())
     steps = decisions / len(counters) if decisions else 0
-    floats_per_step = (
-        n_neighbour_links * message_dim if (extended and spec["control"] == "agents") else 0
-    )
     return {
         "scenario": config["scenario"]["name"],
         "profile": config["env"]["profile"],
@@ -184,8 +189,11 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
         "max_red_forced": sum(c["max_red_forced"] for c in counters.values()),
         "max_red_violations": sum(c["max_red_violations"] for c in counters.values()),
         "phase_changes_per_signal": timing["phase_changes_per_signal"],
-        "communication_floats_per_step": floats_per_step,
-        "communication_floats_total": floats_per_step * steps,
+        # Execution: messages the deployed controllers exchange (extended observation only).
+        # Training: plus the shared rewards (coordination/communication.py).
+        "communication_floats_per_step": communication["execution"],
+        "communication_floats_total": communication["execution"] * steps,
+        "training_communication_floats_per_step": communication["training"],
     }
 
 
