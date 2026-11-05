@@ -624,3 +624,23 @@ Each entry states the decision, the reason, and its impact on the code and the r
   method `ippo_queue_maxred`) are reported next to D39 in `results/tables/reward_check.md`.
   For the Phase 8 main comparison, centralized PPO must be retrained with the same reward and
   max red as the MARL methods.
+
+### D41 — 2026-11-05 — Max-red check results (D40)
+- **Runs:** IPPO, local queue reward, max red 220 s, medium demand, single and corridor, 3
+  seeds, 300k environment steps (`configs/experiments/maxred_check.yaml`). All six plateau
+  (gain in the last fifth <= 1.9 %) with no training gridlock. Tables and curves:
+  `python analysis/reward_check.py` (method `ippo_queue_maxred`).
+- **Starvation is gone:** the longest red falls from about 3,700 s to 228-233 s. Learned
+  policies sometimes switch to another phase just before a phase becomes overdue, so the
+  minimum green delays it a few more seconds; these cases are counted (`max_red_violations`,
+  15-17 per single-high episode) and stay within max red + min green + yellow + one decision.
+- **Tail on single high / peak halves but still fails D33:** p95 total delay 253 s (high) and
+  252 s (peak), against 506 and 401 s without max red, and 115 and 197 s for the actuated
+  program. Mean waiting stays below the actuated program (34.4 vs 42.4 s, 31.1 vs 43.7 s).
+- **Cost elsewhere is small:** mean waiting 5.5 -> 6.9 s (single medium), 8.9 -> 10.8 s
+  (corridor medium), 13.0 -> 14.9 s (corridor high), unchanged on corridor peak. Corridor still
+  beats the actuated program at every demand; single medium still beats it. Throughput is
+  unchanged everywhere.
+- **Status:** IPPO (queue reward, max red) beats fixed-time on mean waiting in every single and
+  corridor case (the Phase 5 criterion) and passes D33 on 4 of 6 scenario-demand pairs. The two
+  failures are single high and peak, demands the policy was not trained on.
