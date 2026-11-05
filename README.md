@@ -19,7 +19,7 @@ extension studies parameter sharing without raw traffic data.
 | 2 | Environment factory, observations, rewards | done |
 | 3 | Metrics | done |
 | 4 | Baselines | done |
-| 5 | Independent MARL (IPPO) | in progress |
+| 5 | Independent MARL (IPPO) | done |
 | 6 | Coordinated variants | — |
 | 7 | CTDE (QMIX, MADDPG, MAPPO) | — |
 | 8 | Full experiment matrix | — |
@@ -164,14 +164,19 @@ demand, with no worse 95th-percentile total delay (D33).
 
 IPPO (RLlib, one shared action-masked policy) is trained from an experiment config; each run
 writes its config, git commit, progress, episode log, TensorBoard logs and checkpoints to
-`results/<experiment>/<method>/<seed>/`.
+`results/<experiment>/<method>/<seed>/`. An interrupted or extended run continues from its
+checkpoint. Learning agents use the queue reward and a 220 s maximum red by default (D40).
 
 ```bash
 python experiments/train.py --config configs/experiments/ippo_single.yaml --seed 0 --evaluate
-python experiments/train.py --config ... --seed 0 env.reward.measure=queue experiment.method=ippo_queue
+python experiments/train.py --config ... --seed 0 env.reward.measure=waiting experiment.method=ippo_waiting
 python experiments/sweep.py --config configs/experiments/reward_check.yaml   # configs x seeds
-python analysis/reward_check.py                    # learning curves + evaluation table
+python experiments/sweep.py --config configs/experiments/maxred_check.yaml
+python analysis/reward_check.py      # results/figures/reward_check_curves.png, tables/reward_check.md
 ```
+
+Phase 5 result (D39-D42): IPPO beats fixed-time on single and corridor at every demand, and
+the actuated program everywhere except single high and peak demand (higher p95 delay).
 
 ### Configuration
 
