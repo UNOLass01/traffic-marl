@@ -1,0 +1,10 @@
+# IPPO, local reward, corridor (4 lights), medium demand.
+#   python experiments/train.py --config configs/experiments/ippo_corridor.yaml --seed 0
+defaults: [base.yaml, scenarios/corridor.yaml, algorithms/ippo.yaml]
+experiment:
+  name: ippo_corridor
+  seeds: [0, 1, 2]
+env:
+  profile: medium
+evaluation:
+  profiles: [medium, high, peak]

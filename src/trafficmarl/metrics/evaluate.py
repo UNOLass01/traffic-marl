@@ -49,6 +49,8 @@ CONTROLLERS: dict[str, dict[str, Any]] = {
     },  # fmt: skip
     # Needs ``checkpoint=<run_dir>/model.zip`` (trained with experiments/run_baselines.py).
     "centralized_ppo": {"control": "agents", "policy": "centralized_ppo"},
+    # Needs ``checkpoint=<run_dir>/checkpoint`` (trained with experiments/train.py).
+    "ippo": {"control": "agents", "policy": "ippo"},
     "random": {"control": "agents", "policy": "random"},
     "keep": {"control": "agents", "policy": "keep"},
     "switch": {"control": "agents", "policy": "switch"},
@@ -82,6 +84,10 @@ def _make_policy(spec: dict, env, seed: int):
         from trafficmarl.baselines.centralized import make_centralized
 
         return make_centralized(spec, env)
+    if name == "ippo":
+        from trafficmarl.agents.ippo import make_ippo
+
+        return make_ippo(spec, env)
     if name in POLICY_FACTORIES:
         return POLICY_FACTORIES[name](spec, env)
     from trafficmarl.envs.policies import make_policy

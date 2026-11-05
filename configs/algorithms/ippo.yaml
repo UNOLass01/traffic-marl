@@ -1,0 +1,22 @@
+# IPPO: independent PPO, one policy shared by all agents (RLlib new API stack, D37).
+# PPO hyperparameters match the centralized baseline (configs/algorithms/centralized_ppo.yaml)
+# so that both are compared at equal settings and budget.
+device: cpu                    # CPU 134 vs GPU 93 env steps/s on grid3x3 (D37)
+algorithm:
+  name: ippo
+  total_env_steps: 300000      # decision steps of the whole network (reward-check budget, D38)
+  num_env_runners: 6           # one SUMO process each
+  train_batch_size: 4096       # env steps per update
+  minibatch_size: 256
+  num_epochs: 10
+  lr: 3.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_param: 0.2
+  entropy_coeff: 0.01
+  vf_loss_coeff: 0.5
+  vf_clip_param: 100000.0      # value clipping off: returns are not normalised
+  grad_clip: 0.5
+  fcnet_hiddens: [256, 256]
+  fcnet_activation: tanh
+  checkpoint_every: 10         # iterations
