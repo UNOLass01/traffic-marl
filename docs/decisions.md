@@ -669,3 +669,67 @@ Each entry states the decision, the reason, and its impact on the code and the r
   sums vary between runs. The difference is smaller than the spread between seeds, which is why
   results are reported as mean and confidence interval over seeds rather than single runs.
   Evaluation of a given checkpoint is deterministic.
+
+### D44 — 2026-11-06 — Phase 6 results: coordination does not beat independent IPPO here
+- **Result:** 3 seeds, 300k steps, held-out routes, all runs complete (`analysis/coordination.py`).
+  Mean waiting (s), independent / neighbourhood / global / neighbour observation:
+  corridor medium 10.5 / 10.4 / 16.1 / 11.0; corridor high 14.5 / 15.2 / 21.8 / 14.9; corridor
+  peak 14.1 / 14.0 / 21.7 / 14.3; grid3x3 medium 19.9 / 19.4 / 41.6 / 18.9; grid3x3 high
+  31.8 / 32.9 / 60.7 / 30.7; grid3x3 peak 31.9 / 32.1 / 61.9 / 31.6. Throughput is identical in
+  each row of the protocol, so no variant gains by keeping vehicles out.
+- **Reading:** by the D43 rule no variant improves on independent IPPO. Neighbourhood reward and
+  neighbour observation are not significantly different (p > 0.1 everywhere). Global reward is
+  significantly worse in every case (+50 % to +109 %, p < 0.02): a shared signal hides each
+  agent's own contribution. Three seeds detect only large effects, so small gains from the
+  neighbour observation (-1 to -5 % on grid3x3) cannot be excluded.
+- **Protocol note:** the last 6 runs (seed 2) ran two at a time after the machine went to 12 GB,
+  each at about 70 % of its solo speed. Their `wall_time_s` is inflated, as is that of every run
+  of D48, so training times are indicative only. It does not affect the learned policies beyond
+  the run-to-run variation described in D43.
+
+### D45 — 2026-11-06 — CTDE methods (Phase 7)
+- **Decision:** MAPPO (`agents/mappo.py`, RLlib) has IPPO's actor and hyperparameters, a critic
+  that sees an agent-specific global state (own observation plus every intersection's compressed
+  message) and the global reward, which makes it comparable with `ippo_global`. QMIX and MADDPG
+  are in-house (D2), with a shared agent network, 300k steps as for IPPO and a replay of 100k
+  joint transitions. MADDPG uses the phase-duration action and trains 4 agents per gradient step.
+- **Reason:** same budget and same network sizes keep the comparison fair. The compressed state
+  holds MAPPO's batch memory on grid5x5 within this machine's limits; the 4-agent subset keeps
+  MADDPG's update cost from growing with the square of the number of agents.
+- **Impact:** QMIX and MADDPG have their own hyperparameters (lr, exploration, reward scale 0.1),
+  in `configs/algorithms/`; these were not tuned by search.
+
+### D46 — 2026-11-06 — Federated extension (Phase 9)
+- **Decision:** one PPO policy per traffic light with IPPO's hyperparameters. Every `round_every`
+  iterations clients send only parameters; the server returns their sample-weighted mean
+  (FedAvg). Optimizer states stay local, and the last step of a run is an aggregation, so a run
+  ends with one global model. `round_every: null` is the no-sharing reference. Clients and
+  server run in one process, but exchange only parameters, through `FederatedClient`.
+- **Reason:** isolates the effect of sharing parameters rather than trajectories (IPPO's parameter
+  sharing), with an explicit client/server boundary. Bytes up and down are counted by the server.
+- **Impact:** comparison with `ippo_local` as the parameter-sharing reference. Optional DP-FedAvg
+  (clipping and noise) is implemented and unit-tested.
+
+### D47 — 2026-11-06 — Full-matrix configs kept, not run
+- **Decision:** `matrix_ray.yaml`, `matrix_light.yaml`, `federated.yaml` and
+  `ablation_penalty.yaml` describe the complete protocol (5 seeds, all methods on all networks).
+- **Impact:** the study actually run is the reduced one of D48. These files remain so that the
+  complete protocol can be run later; the reward and observation ablations are the IPPO variants
+  of the matrix.
+
+### D48 — 2026-11-06 — Study reduced to meet the delivery deadline
+- **Decision:** the team must deliver on 2026-11-07. The estimated 4-5 days of the full matrix
+  (D47) are replaced by `configs/experiments/final_matrix.yaml`: priority tiers, two trainings at
+  a time, no job started after 2026-11-07 16:00. **Learned methods have 3 seeds, not the 5 of the
+  protocol**; baselines keep 5 (10 on LuST).
+- **Order:** (1) single, corridor, grid3x3 with IPPO variants, centralized PPO, MAPPO, QMIX,
+  MADDPG; (2) `ippo_local` on LuST and grid5x5; (3) federated corridor, no sharing and
+  `round_every` = 5; (4) `ippo_extended` on LuST and grid5x5; (5) `round_every` = 1 and 20;
+  (6) seeds 3-4 for `ippo_local` and `ippo_extended` on corridor and grid3x3.
+- **Not run:** CTDE and `ippo_neighborhood`/`ippo_global` on grid5x5 and LuST; federated on
+  grid3x3; the differential-privacy study; the switch-penalty ablation. `ippo_extended` was chosen
+  for tier 4 because it is the explicit coordination scheme and has the lowest mean waiting on
+  grid3x3 medium and high (not significantly, D44).
+- **Impact:** wider confidence intervals and less power than the protocol: a "not significantly
+  different" with 3 seeds is weak evidence of equivalence. Every table shows its `n`; the report
+  states this limit. Jobs that did not start before the stop time are listed in `docs/results.md`.
