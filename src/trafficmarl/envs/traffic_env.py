@@ -248,6 +248,10 @@ class TrafficSignalEnv(ParallelEnv):
     def _now(self) -> float:
         return float(self.sumo_env.sim_step)
 
+    def green_age(self, tls: str) -> float:
+        """Seconds the current green of ``tls`` has been on (constraint bookkeeping)."""
+        return self._now() - self.constraints.state[tls].green_start
+
     def _mask(self, tls: str) -> np.ndarray:
         ts = self._signals()[tls]
         return self.constraints.mask(tls, self._now(), ts.time_since_last_phase_change)

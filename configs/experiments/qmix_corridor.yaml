@@ -1,0 +1,10 @@
+# QMIX, corridor, medium demand.
+#   python experiments/train.py --config configs/experiments/qmix_corridor.yaml --seed 0 --evaluate
+defaults: [base.yaml, scenarios/corridor.yaml, algorithms/qmix.yaml]
+experiment:
+  name: qmix_corridor
+  seeds: [0, 1, 2, 3, 4]
+env:
+  profile: medium
+evaluation:
+  profiles: [medium, high, peak]

@@ -24,7 +24,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from trafficmarl.coordination.communication import floats_per_step
+from trafficmarl.coordination.communication import centralized_floats, floats_per_step
 from trafficmarl.metrics import episode as ep
 from trafficmarl.utils import paths
 from trafficmarl.utils.config import deep_merge
@@ -52,6 +52,10 @@ CONTROLLERS: dict[str, dict[str, Any]] = {
     "centralized_ppo": {"control": "agents", "policy": "centralized_ppo"},
     # Needs ``checkpoint=<run_dir>/checkpoint`` (trained with experiments/train.py).
     "ippo": {"control": "agents", "policy": "ippo"},
+    "mappo": {"control": "agents", "policy": "ippo"},  # same masked actor checkpoint layout
+    # Needs ``checkpoint=<run_dir>/checkpoint`` (agents/offpolicy.py).
+    "qmix": {"control": "agents", "policy": "qmix"},
+    "maddpg": {"control": "agents", "policy": "maddpg"},
     "random": {"control": "agents", "policy": "random"},
     "keep": {"control": "agents", "policy": "keep"},
     "switch": {"control": "agents", "policy": "switch"},
@@ -89,6 +93,14 @@ def _make_policy(spec: dict, env, seed: int):
         from trafficmarl.agents.ippo import make_ippo
 
         return make_ippo(spec, env)
+    if name == "qmix":
+        from trafficmarl.agents.qmix import make_qmix
+
+        return make_qmix(spec, env)
+    if name == "maddpg":
+        from trafficmarl.agents.maddpg import make_maddpg
+
+        return make_maddpg(spec, env)
     if name in POLICY_FACTORIES:
         return POLICY_FACTORIES[name](spec, env)
     from trafficmarl.envs.policies import make_policy
@@ -140,6 +152,14 @@ def evaluate_episode(config: dict, spec: dict, seed: int, route_index: int) -> d
             extended=env.spec.extended,
             reward_type=config["env"]["reward"]["type"],
         )
+        algorithm = config.get("algorithm", {}).get("name", spec.get("policy"))
+        central = centralized_floats(
+            algorithm,
+            n_agents=len(env.spec.topology),
+            obs_dim=env.spec.obs_dim,
+            message_dim=env.spec.message_dim,
+        )
+        communication = {k: communication[k] + central[k] for k in communication}
         if spec["control"] != "agents":
             communication = {"execution": 0, "training": 0}
         env.close()  # flushes tripinfo (including unfinished vehicles) and summary

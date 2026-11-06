@@ -15,6 +15,10 @@ deployment:
 
 Rewards are not used once the policy is trained, so reward sharing costs
 nothing at execution time.
+
+Centralized methods add what their central component must collect
+(:func:`centralized_floats`): CTDE critics only during training, the centralized
+single agent at execution as well.
 """
 
 from __future__ import annotations
@@ -38,3 +42,24 @@ def floats_per_step(
     if reward_type not in rewards:
         raise ValueError(f"Unknown reward type '{reward_type}'")
     return {"execution": observation, "training": observation + rewards[reward_type]}
+
+
+def centralized_floats(
+    method: str, *, n_agents: int, obs_dim: int, message_dim: int
+) -> dict[str, int]:
+    """Floats per decision step that a method's central component adds to ``floats_per_step``.
+
+    * ``mappo``: the critic's global state, one summary per agent, gathered and
+      redistributed (``2 * n_agents * message_dim``), during training only;
+    * ``qmix`` / ``maddpg``: the mixer or critic is trained at one place from every
+      agent's observation, action and reward (``n_agents * (obs_dim + 2)``);
+    * ``centralized_ppo``: the same upstream at training, plus the action sent back;
+      at execution, every observation goes up and every action comes down.
+    """
+    if method == "mappo":
+        return {"execution": 0, "training": 2 * n_agents * message_dim}
+    if method in ("qmix", "maddpg"):
+        return {"execution": 0, "training": n_agents * (obs_dim + 2)}
+    if method == "centralized_ppo":
+        return {"execution": n_agents * (obs_dim + 1), "training": n_agents * (obs_dim + 3)}
+    return {"execution": 0, "training": 0}

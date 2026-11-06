@@ -26,7 +26,12 @@ from trafficmarl.utils.config import deep_merge, load_config
 from trafficmarl.utils.logging_utils import get_logger, setup_logging
 
 logger = get_logger("train")
-TRAINERS = {"ippo": "trafficmarl.agents.ippo"}
+TRAINERS = {
+    "ippo": "trafficmarl.agents.ippo",
+    "mappo": "trafficmarl.agents.mappo",
+    "qmix": "trafficmarl.agents.qmix",
+    "maddpg": "trafficmarl.agents.maddpg",
+}
 
 
 def run(config: dict, seed: int, evaluate_after: bool, workers: int | None = None) -> dict:
