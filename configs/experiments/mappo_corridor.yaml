@@ -1,10 +1,11 @@
-# MAPPO, corridor, medium demand.
+# mappo, corridor, trained on medium demand; final policy tested at every demand.
 #   python experiments/train.py --config configs/experiments/mappo_corridor.yaml --seed 0 --evaluate
 defaults: [base.yaml, scenarios/corridor.yaml, algorithms/mappo.yaml]
 experiment:
-  name: mappo_corridor
+  name: marl_corridor
   seeds: [0, 1, 2, 3, 4]
 env:
   profile: medium
 evaluation:
-  profiles: [medium, high, peak]
+  profiles: [medium, high, peak, saturated]
+

@@ -36,7 +36,7 @@ from marl_study import (  # noqa: E402
 from trafficmarl.metrics.stats import significantly_lower, summarize, welch_p  # noqa: E402
 from trafficmarl.utils import paths  # noqa: E402
 
-PREFIX = "coordination"
+PREFIX = "marl"
 SCENARIOS = ["corridor", "grid3x3"]
 REFERENCE = "ippo_local"
 VARIANTS = {

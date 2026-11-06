@@ -94,7 +94,8 @@ def evaluation_metrics(prefix: str, scenarios: list[str], baselines=BASELINES) -
     for scenario in scenarios:
         root = study_root(prefix, scenario)
         frames += [pd.read_csv(f) for f in root.glob("eval_*/*/*/metrics.csv")]
-        for method in baselines:
+        trained = {p.parent.name for p in root.glob("eval_*/*/*")}
+        for method in set(baselines) - trained:  # a run of this study replaces the Phase 4 one
             frames += [pd.read_csv(f) for f in (paths.RESULTS_DIR / "baselines").glob(
                 f"{scenario}_*/{method}/*/metrics.csv")]  # fmt: skip
     return pd.concat(frames, ignore_index=True)
@@ -110,7 +111,7 @@ def training_table(prefix: str, scenarios: list[str]) -> str:
              "| Plateaued | Gain in last fifth (share of total) |", "|" + "---|" * 9]  # fmt: skip
     for scenario in scenarios:
         root = study_root(prefix, scenario)
-        for stats_file in sorted(root.glob("ippo_*/*/training_stats.json")):
+        for stats_file in sorted(root.glob("*/*/training_stats.json")):
             s = json.loads(stats_file.read_text())
             p = s["plateau"]
             lines.append(

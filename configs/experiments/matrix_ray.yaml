@@ -1,0 +1,49 @@
+# Phase 8 main matrix, RLlib methods (D47). Order: small networks first, so that a partial
+# run already gives complete comparisons.
+#   python experiments/sweep.py --config configs/experiments/matrix_ray.yaml
+#   python analysis/study.py
+seeds: [0, 1, 2, 3, 4]
+evaluate: true
+runs:
+  - config: configs/experiments/ippo_single.yaml
+    overrides: [experiment.method=ippo_local]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.method=ippo_neighborhood, env.reward.type=neighborhood, env.observation.type=local]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.method=ippo_global, env.reward.type=global, env.observation.type=local]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+  - config: configs/experiments/mappo_corridor.yaml
+    overrides: [experiment.method=mappo]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.method=ippo_neighborhood, env.reward.type=neighborhood, env.observation.type=local]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.method=ippo_global, env.reward.type=global, env.observation.type=local]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+  - config: configs/experiments/mappo_grid3x3.yaml
+    overrides: [experiment.method=mappo]
+  - config: configs/experiments/ippo_grid5x5.yaml
+    overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+  - config: configs/experiments/ippo_grid5x5.yaml
+    overrides: [experiment.method=ippo_neighborhood, env.reward.type=neighborhood, env.observation.type=local]
+  - config: configs/experiments/ippo_grid5x5.yaml
+    overrides: [experiment.method=ippo_global, env.reward.type=global, env.observation.type=local]
+  - config: configs/experiments/ippo_grid5x5.yaml
+    overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+  - config: configs/experiments/mappo_grid5x5.yaml
+    overrides: [experiment.method=mappo]
+  - config: configs/experiments/ippo_lust.yaml
+    overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+  - config: configs/experiments/ippo_lust.yaml
+    overrides: [experiment.method=ippo_neighborhood, env.reward.type=neighborhood, env.observation.type=local]
+  - config: configs/experiments/ippo_lust.yaml
+    overrides: [experiment.method=ippo_global, env.reward.type=global, env.observation.type=local]
+  - config: configs/experiments/ippo_lust.yaml
+    overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+  - config: configs/experiments/mappo_lust.yaml
+    overrides: [experiment.method=mappo]

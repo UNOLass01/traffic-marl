@@ -1,0 +1,9 @@
+# Centralized PPO, single: same reward and max red as the MARL methods (D40).
+defaults: [base.yaml, scenarios/single.yaml, algorithms/centralized_ppo_queue.yaml]
+experiment:
+  name: marl_single
+  seeds: [0, 1, 2, 3, 4]
+env:
+  profile: medium
+evaluation:
+  profiles: [medium, high, peak, saturated]

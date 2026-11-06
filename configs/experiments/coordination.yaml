@@ -8,26 +8,26 @@ seeds: [0, 1, 2]
 evaluate: true
 runs:
   - config: configs/experiments/ippo_corridor.yaml
-    overrides: [experiment.name=coordination_corridor, experiment.method=ippo_local,
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_local,
                 env.reward.type=local, env.observation.type=local]
   - config: configs/experiments/ippo_corridor.yaml
-    overrides: [experiment.name=coordination_corridor, experiment.method=ippo_neighborhood,
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_neighborhood,
                 env.reward.type=neighborhood, env.observation.type=local]
   - config: configs/experiments/ippo_corridor.yaml
-    overrides: [experiment.name=coordination_corridor, experiment.method=ippo_global,
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_global,
                 env.reward.type=global, env.observation.type=local]
   - config: configs/experiments/ippo_corridor.yaml
-    overrides: [experiment.name=coordination_corridor, experiment.method=ippo_extended,
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_extended,
                 env.reward.type=local, env.observation.type=extended]
   - config: configs/experiments/ippo_grid3x3.yaml
-    overrides: [experiment.name=coordination_grid3x3, experiment.method=ippo_local,
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_local,
                 env.reward.type=local, env.observation.type=local]
   - config: configs/experiments/ippo_grid3x3.yaml
-    overrides: [experiment.name=coordination_grid3x3, experiment.method=ippo_neighborhood,
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_neighborhood,
                 env.reward.type=neighborhood, env.observation.type=local]
   - config: configs/experiments/ippo_grid3x3.yaml
-    overrides: [experiment.name=coordination_grid3x3, experiment.method=ippo_global,
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_global,
                 env.reward.type=global, env.observation.type=local]
   - config: configs/experiments/ippo_grid3x3.yaml
-    overrides: [experiment.name=coordination_grid3x3, experiment.method=ippo_extended,
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_extended,
                 env.reward.type=local, env.observation.type=extended]

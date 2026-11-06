@@ -1,0 +1,10 @@
+# Ablations not covered by the main matrix (reward type and observation type are; see D47):
+# switch penalty c (D25). c = 0.5 is ippo_local of the matrix. grid3x3, 5 seeds.
+#   python experiments/sweep.py --config configs/experiments/ablation_penalty.yaml
+seeds: [0, 1, 2, 3, 4]
+evaluate: true
+runs:
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.method=ippo_c01, env.reward.type=local, env.observation.type=local, env.reward.switch_penalty=0.1]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.method=ippo_c10, env.reward.type=local, env.observation.type=local, env.reward.switch_penalty=1.0]

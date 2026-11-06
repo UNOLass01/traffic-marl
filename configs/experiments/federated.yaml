@@ -1,0 +1,27 @@
+# Phase 9 (D46): independent vs federated, with ippo_local of the main matrix as the
+# parameter-sharing reference. Local queue reward, same budget.
+#   python experiments/sweep.py --config configs/experiments/federated.yaml
+#   python analysis/study.py
+seeds: [0, 1, 2, 3, 4]
+evaluate: true
+runs:
+  - config: configs/experiments/federated_corridor.yaml
+    overrides: [experiment.method=independent, algorithm.round_every=null]
+  - config: configs/experiments/federated_corridor.yaml
+    overrides: [experiment.method=fedavg_r1, algorithm.round_every=1]
+  - config: configs/experiments/federated_corridor.yaml
+    overrides: [experiment.method=fedavg_r5, algorithm.round_every=5]
+  - config: configs/experiments/federated_corridor.yaml
+    overrides: [experiment.method=fedavg_r20, algorithm.round_every=20]
+  - config: configs/experiments/federated_corridor.yaml
+    overrides: [experiment.method=fedavg_r5_dp, algorithm.round_every=5, algorithm.clip_norm=5.0, algorithm.noise_multiplier=0.1]
+  - config: configs/experiments/federated_grid3x3.yaml
+    overrides: [experiment.method=independent, algorithm.round_every=null]
+  - config: configs/experiments/federated_grid3x3.yaml
+    overrides: [experiment.method=fedavg_r1, algorithm.round_every=1]
+  - config: configs/experiments/federated_grid3x3.yaml
+    overrides: [experiment.method=fedavg_r5, algorithm.round_every=5]
+  - config: configs/experiments/federated_grid3x3.yaml
+    overrides: [experiment.method=fedavg_r20, algorithm.round_every=20]
+  - config: configs/experiments/federated_grid3x3.yaml
+    overrides: [experiment.method=fedavg_r5_dp, algorithm.round_every=5, algorithm.clip_norm=5.0, algorithm.noise_multiplier=0.1]
