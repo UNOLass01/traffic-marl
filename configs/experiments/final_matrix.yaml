@@ -1,0 +1,84 @@
+# Final study under the delivery deadline (D48): the main matrix reduced to what fits, in
+# order of priority, so that the jobs lost at the stop time are the least important ones.
+#   python experiments/sweep.py --config configs/experiments/final_matrix.yaml \
+#       --parallel 2 --stop-starting "2026-11-07 16:00"
+#   python analysis/study.py
+evaluate: true
+tiers:
+  # 1. Complete comparison on the small networks. The IPPO runs reuse Phase 6 and only add
+  #    the saturated evaluation.
+  - seeds: [0, 1, 2]
+    runs:
+      - config: configs/experiments/ippo_single.yaml
+        overrides: [experiment.method=ippo_local]
+      - config: configs/experiments/ippo_corridor.yaml
+        overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+      - config: configs/experiments/ippo_corridor.yaml
+        overrides: [experiment.method=ippo_neighborhood, env.reward.type=neighborhood, env.observation.type=local]
+      - config: configs/experiments/ippo_corridor.yaml
+        overrides: [experiment.method=ippo_global, env.reward.type=global, env.observation.type=local]
+      - config: configs/experiments/ippo_corridor.yaml
+        overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+      - config: configs/experiments/ippo_grid3x3.yaml
+        overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+      - config: configs/experiments/ippo_grid3x3.yaml
+        overrides: [experiment.method=ippo_neighborhood, env.reward.type=neighborhood, env.observation.type=local]
+      - config: configs/experiments/ippo_grid3x3.yaml
+        overrides: [experiment.method=ippo_global, env.reward.type=global, env.observation.type=local]
+      - config: configs/experiments/ippo_grid3x3.yaml
+        overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+      - config: configs/experiments/centralized_ppo_queue_corridor.yaml
+        overrides: [experiment.method=centralized_ppo]
+      - config: configs/experiments/mappo_corridor.yaml
+        overrides: [experiment.method=mappo]
+      - config: configs/experiments/qmix_corridor.yaml
+        overrides: [experiment.method=qmix]
+      - config: configs/experiments/maddpg_corridor.yaml
+        overrides: [experiment.method=maddpg]
+      - config: configs/experiments/centralized_ppo_queue_grid3x3.yaml
+        overrides: [experiment.method=centralized_ppo]
+      - config: configs/experiments/mappo_grid3x3.yaml
+        overrides: [experiment.method=mappo]
+      - config: configs/experiments/qmix_grid3x3.yaml
+        overrides: [experiment.method=qmix]
+      - config: configs/experiments/maddpg_grid3x3.yaml
+        overrides: [experiment.method=maddpg]
+  # 2. Scalability: independent IPPO on the large networks.
+  - seeds: [0, 1, 2]
+    runs:
+      - config: configs/experiments/ippo_lust.yaml
+        overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+      - config: configs/experiments/ippo_grid5x5.yaml
+        overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+  # 3. Federated extension, corridor: no sharing vs FedAvg.
+  - seeds: [0, 1, 2]
+    runs:
+      - config: configs/experiments/federated_corridor.yaml
+        overrides: [experiment.method=independent, algorithm.round_every=null]
+      - config: configs/experiments/federated_corridor.yaml
+        overrides: [experiment.method=fedavg_r5, algorithm.round_every=5]
+  # 4. Scalability: best coordination of Phase 6 on the large networks.
+  - seeds: [0, 1, 2]
+    runs:
+      - config: configs/experiments/ippo_lust.yaml
+        overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+      - config: configs/experiments/ippo_grid5x5.yaml
+        overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+  # 5. Federated: aggregation frequency.
+  - seeds: [0, 1, 2]
+    runs:
+      - config: configs/experiments/federated_corridor.yaml
+        overrides: [experiment.method=fedavg_r1, algorithm.round_every=1]
+      - config: configs/experiments/federated_corridor.yaml
+        overrides: [experiment.method=fedavg_r20, algorithm.round_every=20]
+  # 6. If time remains: seeds 3 and 4 on the small networks, as the brief asks.
+  - seeds: [3, 4]
+    runs:
+      - config: configs/experiments/ippo_corridor.yaml
+        overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+      - config: configs/experiments/ippo_corridor.yaml
+        overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
+      - config: configs/experiments/ippo_grid3x3.yaml
+        overrides: [experiment.method=ippo_local, env.reward.type=local, env.observation.type=local]
+      - config: configs/experiments/ippo_grid3x3.yaml
+        overrides: [experiment.method=ippo_extended, env.reward.type=local, env.observation.type=extended]
