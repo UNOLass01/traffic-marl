@@ -1,1 +1,1 @@
-"""Federated learning extension (client/server FedAvg and variants)."""
+"""Federated reinforcement learning: local training, parameters aggregated by a server."""

@@ -1,0 +1,6 @@
+# Centralized PPO for the main comparison (D40, D35): same reward and max red as the MARL methods.
+defaults: [algorithms/centralized_ppo.yaml]
+env:
+  max_red: 220
+  reward:
+    measure: queue
