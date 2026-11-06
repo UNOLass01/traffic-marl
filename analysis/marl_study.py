@@ -113,11 +113,12 @@ def training_table(prefix: str, scenarios: list[str]) -> str:
         root = study_root(prefix, scenario)
         for stats_file in sorted(root.glob("*/*/training_stats.json")):
             s = json.loads(stats_file.read_text())
-            p = s["plateau"]
+            p = s.get("plateau") or {}  # the SB3 centralized trainer has no plateau record
+            plateaued = {True: "yes", False: "no"}.get(p.get("plateaued"), "n/a")
             lines.append(
                 f"| {scenario} | {stats_file.parent.parent.name} | {s['seed']} | {s['env_steps']} "
                 f"| {s['wall_time_s'] / 60:.1f} | {s['env_steps_per_s']:.0f} "
-                f"| {s['training_gridlocks']} | {'yes' if p['plateaued'] else 'no'} "
+                f"| {s['training_gridlocks']} | {plateaued} "
                 f"| {p.get('recent_gain_share')} |"
             )
     return "\n".join(lines)
