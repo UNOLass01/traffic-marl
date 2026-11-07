@@ -744,3 +744,11 @@ Each entry states the decision, the reason, and its impact on the code and the r
 - **Impact:** grid5x5 `ippo_local` seeds 0 and 2 were kept: they reached the full budget, but their
   first iterations hit the timeout, so a few early updates used smaller batches than 4096
   (76-77 logged iterations instead of 74). Their wall times include those timeouts.
+
+### D50 — 2026-11-07 — What the reduced study actually ran
+- **Outcome:** all six tiers of D48 completed with no failed job. The sweep stopped starting jobs
+  at 16:00; the seed-4 jobs of tier 6 that had not started were run afterwards (finished 17:44),
+  so `ippo_local` and `ippo_extended` have 5 seeds on corridor and grid3x3. Baselines were also
+  evaluated on the `saturated` profile of every scenario, so the robustness table covers it.
+- **Impact:** every job listed in `final_matrix.yaml` has results; the combinations that were not
+  run are those listed under "Not run" in D48. Results are reported in `docs/results.md`.
