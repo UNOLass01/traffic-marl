@@ -1,0 +1,33 @@
+# Phase 6 (D43): IPPO without coordination vs implicit (shared reward) and explicit
+# (neighbour observation) coordination, corridor and grid3x3, medium demand, 3 seeds,
+# 300k environment steps each (extended if not plateaued). Queue reward and 220 s max red
+# for every variant (D40); one shared policy (parameter sharing).
+#   python experiments/sweep.py --config configs/experiments/coordination.yaml
+#   python analysis/coordination.py
+seeds: [0, 1, 2]
+evaluate: true
+runs:
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_local,
+                env.reward.type=local, env.observation.type=local]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_neighborhood,
+                env.reward.type=neighborhood, env.observation.type=local]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_global,
+                env.reward.type=global, env.observation.type=local]
+  - config: configs/experiments/ippo_corridor.yaml
+    overrides: [experiment.name=marl_corridor, experiment.method=ippo_extended,
+                env.reward.type=local, env.observation.type=extended]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_local,
+                env.reward.type=local, env.observation.type=local]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_neighborhood,
+                env.reward.type=neighborhood, env.observation.type=local]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_global,
+                env.reward.type=global, env.observation.type=local]
+  - config: configs/experiments/ippo_grid3x3.yaml
+    overrides: [experiment.name=marl_grid3x3, experiment.method=ippo_extended,
+                env.reward.type=local, env.observation.type=extended]

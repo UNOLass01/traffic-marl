@@ -1,0 +1,26 @@
+# QMIX (Rashid et al., 2018), in-house implementation (D2, D45).
+device: cpu
+algorithm:
+  name: qmix
+  total_env_steps: 300000      # same budget as IPPO
+  num_env_runners: 6           # one SUMO process each, stepped in lockstep
+  iteration_steps: 4096        # environment steps per logged iteration (as PPO's batch)
+  checkpoint_every: 10         # iterations
+  torch_threads: 4
+  hidden: [256, 256]           # agent network, shared by all agents
+  mixer_embed: 32
+  mixer_hyper: 64
+  gamma: 0.99
+  lr: 5.0e-4
+  grad_clip: 10.0
+  batch_size: 128
+  replay_capacity: 100000      # joint transitions
+  learning_starts: 5000        # environment steps
+  update_every: 6              # environment steps per gradient step
+  target_update_every: 500     # gradient steps
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  exploration_steps: 100000    # environment steps of linear annealing
+  reward_scale: 0.1            # learning only: keeps Q values near unit scale
+env:
+  max_red: 220                 # s; learning agents only (D40)

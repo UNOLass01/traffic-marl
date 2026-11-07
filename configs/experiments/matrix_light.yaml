@@ -1,0 +1,28 @@
+# Phase 8 main matrix, light trainers (D47): QMIX, MADDPG, centralized PPO. These need about
+# 2 GB, so this sweep can run next to matrix_ray.yaml on the 8 GB machine.
+#   python experiments/sweep.py --config configs/experiments/matrix_light.yaml
+seeds: [0, 1, 2, 3, 4]
+evaluate: true
+runs:
+  - config: configs/experiments/centralized_ppo_queue_single.yaml
+    overrides: [experiment.method=centralized_ppo]
+  - config: configs/experiments/qmix_corridor.yaml
+    overrides: [experiment.method=qmix]
+  - config: configs/experiments/maddpg_corridor.yaml
+    overrides: [experiment.method=maddpg]
+  - config: configs/experiments/centralized_ppo_queue_corridor.yaml
+    overrides: [experiment.method=centralized_ppo]
+  - config: configs/experiments/qmix_grid3x3.yaml
+    overrides: [experiment.method=qmix]
+  - config: configs/experiments/maddpg_grid3x3.yaml
+    overrides: [experiment.method=maddpg]
+  - config: configs/experiments/centralized_ppo_queue_grid3x3.yaml
+    overrides: [experiment.method=centralized_ppo]
+  - config: configs/experiments/qmix_grid5x5.yaml
+    overrides: [experiment.method=qmix]
+  - config: configs/experiments/maddpg_grid5x5.yaml
+    overrides: [experiment.method=maddpg]
+  - config: configs/experiments/qmix_lust.yaml
+    overrides: [experiment.method=qmix]
+  - config: configs/experiments/maddpg_lust.yaml
+    overrides: [experiment.method=maddpg]

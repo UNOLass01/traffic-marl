@@ -1,0 +1,12 @@
+# qmix, lust, trained on medium demand; final policy tested at every demand.
+#   python experiments/train.py --config configs/experiments/qmix_lust.yaml --seed 0 --evaluate
+defaults: [base.yaml, scenarios/lust.yaml, algorithms/qmix.yaml]
+experiment:
+  name: marl_lust
+  seeds: [0, 1, 2, 3, 4]
+env:
+  profile: medium
+evaluation:
+  profiles: [medium, high, peak, saturated]
+  sumo_seeds_per_run: 2        # 5 runs x 2 = SUMO seeds 0-9 (D34)
+

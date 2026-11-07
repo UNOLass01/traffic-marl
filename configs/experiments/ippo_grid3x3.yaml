@@ -1,10 +1,11 @@
-# IPPO, local reward, grid3x3 (9 lights), medium demand.
-#   python experiments/train.py --config configs/experiments/ippo_grid3x3.yaml --seed 0
+# ippo, grid3x3, trained on medium demand; final policy tested at every demand.
+#   python experiments/train.py --config configs/experiments/ippo_grid3x3.yaml --seed 0 --evaluate
 defaults: [base.yaml, scenarios/grid3x3.yaml, algorithms/ippo.yaml]
 experiment:
-  name: ippo_grid3x3
+  name: marl_grid3x3
   seeds: [0, 1, 2, 3, 4]
 env:
   profile: medium
 evaluation:
-  profiles: [medium, high, peak]
+  profiles: [medium, high, peak, saturated]
+

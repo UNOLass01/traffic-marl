@@ -26,7 +26,15 @@ from trafficmarl.utils.config import deep_merge, load_config
 from trafficmarl.utils.logging_utils import get_logger, setup_logging
 
 logger = get_logger("train")
-TRAINERS = {"ippo": "trafficmarl.agents.ippo"}
+TRAINERS = {
+    "ippo": "trafficmarl.agents.ippo",
+    "mappo": "trafficmarl.agents.mappo",
+    "qmix": "trafficmarl.agents.qmix",
+    "maddpg": "trafficmarl.agents.maddpg",
+    "federated": "trafficmarl.federated.trainer",
+    "centralized_ppo": "trafficmarl.baselines.centralized",
+}
+CHECKPOINT_NAME = {"centralized_ppo": "model.zip"}  # the others save "checkpoint/"
 
 
 def run(config: dict, seed: int, evaluate_after: bool, workers: int | None = None) -> dict:
@@ -39,7 +47,8 @@ def run(config: dict, seed: int, evaluate_after: bool, workers: int | None = Non
     method = config["experiment"].get("method", algorithm)
     run_dir = paths.RESULTS_DIR / name / method / str(seed)
     stats_file = run_dir / "training_stats.json"
-    budget = int(config["algorithm"]["total_env_steps"])
+    algo_cfg = config["algorithm"]
+    budget = int(algo_cfg.get("total_env_steps", algo_cfg.get("total_timesteps")))
     stats = json.loads(stats_file.read_text()) if stats_file.is_file() else None
     trained_now = not (stats and stats["env_steps"] >= budget)
     if not trained_now:
@@ -49,7 +58,7 @@ def run(config: dict, seed: int, evaluate_after: bool, workers: int | None = Non
         stats = trainer.train(config, seed, run_dir)
         logger.info("trained %s/%s seed %d: %s", name, method, seed, stats)
     if evaluate_after:
-        checkpoint = str(run_dir / "checkpoint")
+        checkpoint = str(run_dir / CHECKPOINT_NAME.get(algorithm, "checkpoint"))
         spec = {**controller_spec(algorithm, checkpoint=checkpoint), "name": method}
         for profile in config.get("evaluation", {}).get("profiles", [config["env"]["profile"]]):
             experiment = f"{name}/eval_{profile}"
@@ -57,7 +66,12 @@ def run(config: dict, seed: int, evaluate_after: bool, workers: int | None = Non
             if done and not trained_now:  # a new or extended policy is evaluated again
                 continue
             eval_config = deep_merge(config, {"env": {"profile": profile}})
-            evaluate(eval_config, spec, [seed], experiment=experiment, workers=workers)
+            # A LuST run covers several SUMO seeds (D34): 5 runs x 2 = SUMO seeds 0-9.
+            per_run = int(config.get("evaluation", {}).get("sumo_seeds_per_run", 1))
+            n_runs = len(config["experiment"]["seeds"])
+            sumo_seeds = {seed: [seed + i * n_runs for i in range(per_run)]}
+            evaluate(eval_config, spec, [seed], experiment=experiment, workers=workers,
+                     sumo_seeds=sumo_seeds)  # fmt: skip
     return stats
 
 

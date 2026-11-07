@@ -1,0 +1,8 @@
+# One PPO policy per traffic light with IPPO's hyperparameters (D46).
+# round_every: PPO iterations per FedAvg round; null = no sharing at all (independent).
+defaults: [algorithms/ippo.yaml]
+algorithm:
+  name: federated
+  round_every: 5
+  clip_norm: null              # L2 bound of each client's update (differential privacy)
+  noise_multiplier: 0.0        # noise std on the mean = multiplier * clip_norm / n_clients

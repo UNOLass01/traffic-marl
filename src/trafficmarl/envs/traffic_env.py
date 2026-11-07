@@ -170,7 +170,7 @@ class TrafficSignalEnv(ParallelEnv):
         self.sumo_env = CountingSumoEnvironment(
             net_file=net_file,
             route_file=str(self.route_files[0]),
-            use_gui=False,
+            use_gui=bool(sim_cfg.get("gui", False)),  # demo only (experiments/demo.py)
             num_seconds=self.time_limit,
             delta_time=self.delta_time,
             yellow_time=yellow_time,
@@ -247,6 +247,10 @@ class TrafficSignalEnv(ParallelEnv):
 
     def _now(self) -> float:
         return float(self.sumo_env.sim_step)
+
+    def green_age(self, tls: str) -> float:
+        """Seconds the current green of ``tls`` has been on (constraint bookkeeping)."""
+        return self._now() - self.constraints.state[tls].green_start
 
     def _mask(self, tls: str) -> np.ndarray:
         ts = self._signals()[tls]

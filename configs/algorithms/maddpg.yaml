@@ -1,0 +1,26 @@
+# MADDPG (Lowe et al., 2017), in-house implementation, phase-duration action (D2, D45).
+device: cpu
+algorithm:
+  name: maddpg
+  total_env_steps: 300000      # same budget as IPPO
+  num_env_runners: 6
+  iteration_steps: 4096
+  checkpoint_every: 10
+  torch_threads: 4
+  hidden: [256, 256]
+  gamma: 0.99
+  actor_lr: 1.0e-4
+  critic_lr: 1.0e-3
+  tau: 0.005
+  grad_clip: 1.0
+  batch_size: 128
+  replay_capacity: 100000
+  learning_starts: 5000
+  update_every: 6
+  agents_per_update: 4         # agents trained per gradient step (the critic input is joint)
+  noise_start: 0.5             # std of Gaussian exploration, on the [-1, 1] action
+  noise_end: 0.05
+  exploration_steps: 100000
+  reward_scale: 0.1
+env:
+  max_red: 220

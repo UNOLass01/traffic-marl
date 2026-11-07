@@ -1,0 +1,11 @@
+# mappo, grid5x5, trained on medium demand; final policy tested at every demand.
+#   python experiments/train.py --config configs/experiments/mappo_grid5x5.yaml --seed 0 --evaluate
+defaults: [base.yaml, scenarios/grid5x5.yaml, algorithms/mappo.yaml]
+experiment:
+  name: marl_grid5x5
+  seeds: [0, 1, 2, 3, 4]
+env:
+  profile: medium
+evaluation:
+  profiles: [medium, high, peak, saturated]
+

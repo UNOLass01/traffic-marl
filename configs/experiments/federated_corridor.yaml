@@ -1,0 +1,11 @@
+# federated, corridor, trained on medium demand; final policy tested at every demand.
+#   python experiments/train.py --config configs/experiments/federated_corridor.yaml --seed 0 --evaluate
+defaults: [base.yaml, scenarios/corridor.yaml, algorithms/federated.yaml]
+experiment:
+  name: marl_corridor
+  seeds: [0, 1, 2, 3, 4]
+env:
+  profile: medium
+evaluation:
+  profiles: [medium, high, peak, saturated]
+

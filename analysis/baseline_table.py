@@ -22,6 +22,7 @@ from trafficmarl.utils import paths
 
 METHOD_ORDER = [
     "fixed_time", "webster", "actuated", "max_pressure", "max_pressure_maxred", "centralized_ppo",
+    "ippo_local", "ippo_neighborhood", "ippo_global", "ippo_extended", "mappo", "qmix", "maddpg",
 ]  # fmt: skip
 SCENARIO_ORDER = ["single", "corridor", "grid3x3", "grid5x5", "lust"]
 PROFILE_ORDER = ["medium", "high", "peak"]

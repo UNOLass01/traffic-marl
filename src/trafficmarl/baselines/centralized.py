@@ -25,6 +25,7 @@ from typing import Any
 import gymnasium as gym
 import numpy as np
 
+from trafficmarl.agents.training_logs import append_episode
 from trafficmarl.envs.factory import make_env
 
 
@@ -33,8 +34,11 @@ class CentralizedEnv(gym.Env):
 
     metadata = {"render_modes": []}
 
-    def __init__(self, config: dict, split: str = "train", seed: int = 0):
+    def __init__(
+        self, config: dict, split: str = "train", seed: int = 0, log_path: Path | None = None
+    ):
         self.env = make_env(config, split=split, seed=seed)
+        self._log_path, self._episode, self._steps, self._return = log_path, 0, 0, 0.0
         self.agents = list(self.env.possible_agents)
         n, p, d = len(self.agents), self.env.spec.max_phases, self.env.spec.obs_dim
         self.observation_space = gym.spaces.Box(0.0, 1.0, (n * d,), dtype=np.float32)
@@ -51,6 +55,7 @@ class CentralizedEnv(gym.Env):
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         super().reset(seed=seed)
         self._obs, _ = self.env.reset(seed=seed, options=options)
+        self._steps, self._return = 0, 0.0
         return self._flat(self._obs), {}
 
     def step(self, action):
@@ -61,7 +66,14 @@ class CentralizedEnv(gym.Env):
         if info.get("gridlock"):
             self.gridlocks += 1
         reward = float(np.mean(list(rewards.values())))
+        self._steps += 1
+        self._return += reward
         terminated = any(terms.values())
+        if not self.env.agents:
+            self._episode += 1
+            append_episode(
+                self._log_path, self._episode, self._steps, {"all": self._return}, info["episode"]
+            )
         truncated = any(truncs.values()) and not terminated
         return (
             self._flat(obs),
@@ -75,9 +87,10 @@ class CentralizedEnv(gym.Env):
         self.env.close()
 
 
-def _make_env_fn(config: dict, seed: int, rank: int):
+def _make_env_fn(config: dict, seed: int, rank: int, run_dir: Path):
     def _init():
-        env = CentralizedEnv(config, split="train", seed=seed * 1000 + rank)
+        log_path = run_dir / "episodes" / f"runner_{rank}_0.jsonl"
+        env = CentralizedEnv(config, split="train", seed=seed * 1000 + rank, log_path=log_path)
         env.reset(seed=seed * 1000 + rank)
         return env
 
@@ -96,11 +109,13 @@ def train(config: dict, seed: int, run_dir: Path) -> dict[str, Any]:
     algo = config["algorithm"]
     set_global_seed(seed)
     device = resolve_device(config.get("device", "auto"))
+    run_dir = Path(run_dir).resolve()
     run_dir.mkdir(parents=True, exist_ok=True)
     write_run_info(run_dir, {**config, "device_resolved": device, "seed": seed})
     # One SUMO (libsumo) instance per subprocess.
     vec = SubprocVecEnv(
-        [_make_env_fn(config, seed, r) for r in range(algo["n_envs"])], start_method="spawn"
+        [_make_env_fn(config, seed, r, run_dir) for r in range(algo["n_envs"])],
+        start_method="spawn",
     )
     vec = VecMonitor(vec, filename=str(run_dir / "monitor"))
     model = MaskablePPO(
@@ -129,6 +144,8 @@ def train(config: dict, seed: int, run_dir: Path) -> dict[str, Any]:
     stats = {
         "seed": seed,
         "timesteps": int(model.num_timesteps),
+        "env_steps": int(model.num_timesteps),
+        "env_steps_per_s": round(model.num_timesteps / wall, 1),
         "wall_time_s": round(wall, 1),
         "steps_per_s": round(model.num_timesteps / wall, 1),
         "peak_rss_mb_main": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 1),

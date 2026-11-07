@@ -20,11 +20,13 @@ extension studies parameter sharing without raw traffic data.
 | 3 | Metrics | done |
 | 4 | Baselines | done |
 | 5 | Independent MARL (IPPO) | done |
-| 6 | Coordinated variants | — |
-| 7 | CTDE (QMIX, MADDPG, MAPPO) | — |
-| 8 | Full experiment matrix | — |
-| 9 | Federated extension | — |
-| 10 | Documentation and demo | — |
+| 6 | Coordinated variants | done (D43-D44) |
+| 7 | CTDE (QMIX, MADDPG, MAPPO) | done (D45) |
+| 8 | Experiment study | done, reduced to 3 seeds for learned methods (D48) |
+| 9 | Federated extension | done on corridor (D46, D48) |
+| 10 | Documentation and demo | done |
+
+Results and their discussion: [docs/results.md](docs/results.md) (in French).
 
 ## Setup
 
@@ -173,10 +175,61 @@ python experiments/train.py --config ... --seed 0 env.reward.measure=waiting exp
 python experiments/sweep.py --config configs/experiments/reward_check.yaml   # configs x seeds
 python experiments/sweep.py --config configs/experiments/maxred_check.yaml
 python analysis/reward_check.py      # results/figures/reward_check_curves.png, tables/reward_check.md
+python experiments/sweep.py --config configs/experiments/coordination.yaml   # Phase 6
+python analysis/coordination.py      # results/figures/coordination_curves.png, tables/coordination.md
 ```
 
 Phase 5 result (D39-D42): IPPO beats fixed-time on single and corridor at every demand, and
 the actuated program everywhere except single high and peak demand (higher p95 delay).
+
+Other trainers use the same command, chosen by `algorithm.name` in the config: `mappo`, `qmix`,
+`maddpg` (phase-duration action), `federated` (one policy per light, FedAvg) and
+`centralized_ppo` (see `configs/experiments/*_<scenario>.yaml`).
+
+### Reproducing the study
+
+The final study (D48) is one sweep file in priority order. It runs two trainings side by side
+and starts no job after the given time; every run is resumable, so the same command continues
+an interrupted sweep. The table and figure scripts work on partial results.
+
+```bash
+python experiments/run_baselines.py                                   # baselines, 5 seeds
+python experiments/sweep.py --config configs/experiments/final_matrix.yaml \
+    --parallel 2 --stop-starting "2026-11-07 16:00"                   # learned methods
+python experiments/transfer.py --source grid3x3 --target grid5x5 \
+    --methods ippo_local ippo_extended --seeds 0 1 2                    # transfer, no retraining
+for p in medium peak; do python experiments/heatmap.py --scenario grid5x5 --profile $p \
+    --methods fixed_time max_pressure ippo_local ippo_extended; done   # congestion heatmaps
+python analysis/study.py                                              # every table and figure
+python analysis/summary.py                                            # compact tables of docs/results.md
+```
+
+Outputs: `results/tables/{main,training,ablation,robustness,scalability,transfer,federated}.md`
+and `results/figures/` (learning curves, metric bars, scalability, robustness, federated,
+heatmaps). A copy of the figures used in the report is kept in `docs/figures/`. The complete
+5-seed protocol is in `matrix_ray.yaml`, `matrix_light.yaml`, `federated.yaml` and
+`ablation_penalty.yaml` (D47); it takes about 4-5 days on an 8-core machine.
+
+Two Ray trainings need about 9 GB of RAM: give WSL at least 12 GB (`memory=12GB` in
+`%UserProfile%\.wslconfig`) for `--parallel 2`, otherwise use the default of one at a time.
+
+### Demo (SUMO GUI)
+
+`experiments/demo.py` plays one evaluation episode of any controller in `sumo-gui`, with the
+evaluation settings (first held-out route file). Learned policies are read from
+`results/marl_<scenario>/<method>/<seed>/checkpoint`.
+
+```bash
+unset LIBSUMO_AS_TRACI          # the GUI needs the socket API
+python experiments/demo.py --scenario grid3x3 --profile peak --method fixed_time
+python experiments/demo.py --scenario grid3x3 --profile peak --method max_pressure
+python experiments/demo.py --scenario grid3x3 --profile peak --method ippo_extended --seed 1
+```
+
+To record the video: set the GUI delay to about 50 ms, colour vehicles by waiting time
+(*View settings > Vehicles > Color: by waiting time*), and record both runs at the same
+simulated time with any screen recorder (Windows: Win+Alt+R, Xbox Game Bar). Use
+`--no-gui` to check the setup headless.
 
 ### Configuration
 
@@ -200,7 +253,9 @@ Scientific and engineering choices are logged with their reason and impact in
 ### Reproducibility
 
 `trafficmarl.utils.seeding.set_global_seed` seeds Python, NumPy and PyTorch; SUMO receives its
-seed through `--seed`. Each result is reported over at least 5 seeds.
+seed through `--seed`. Baselines are reported over 5 seeds (10 SUMO seeds on LuST), learned
+methods over 3 training seeds (D48); every table gives its `n`. RLlib training is seeded but
+not bitwise reproducible (D43).
 
 ## Repository layout
 

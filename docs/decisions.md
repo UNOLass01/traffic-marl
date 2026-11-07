@@ -644,3 +644,111 @@ Each entry states the decision, the reason, and its impact on the code and the r
 - **Status:** IPPO (queue reward, max red) beats fixed-time on mean waiting in every single and
   corridor case (the Phase 5 criterion) and passes D33 on 4 of 6 scenario-demand pairs. The two
   failures are single high and peak, demands the policy was not trained on.
+
+### D43 — 2026-11-05 — Phase 6 protocol (coordination) and communication accounting
+- **Protocol:** four IPPO variants with one shared policy, the queue reward and a 220 s max red
+  (D40), medium demand, corridor and grid3x3, 3 seeds, 300k environment steps per run, extended
+  from the checkpoint if not plateaued (D38 rule): `ippo_local` (independent, no coordination),
+  `ippo_neighborhood` (implicit, alpha = 0.5), `ippo_global` (implicit, network mean) and
+  `ippo_extended` (explicit: neighbours' messages in the observation, local reward)
+  (`configs/experiments/coordination.yaml`). Each final policy is evaluated on the held-out
+  route files at medium, high and peak demand. A variant improves on independent IPPO when its
+  mean waiting time is significantly lower (D27 statistics) without lower throughput.
+- **Seeds:** 3 seeds for the comparison, as in the reward check; the full 5-seed matrix is
+  Phase 8.
+- **Communication:** reported in floats per decision step, at execution and during training
+  (`coordination/communication.py`). Only the neighbour observation costs at execution (one
+  message of 2 + P floats per directed neighbour link). Shared rewards cost only in training:
+  one float per directed link for `neighborhood`, two per agent through an aggregator for
+  `global` (cheaper than all-to-all).
+- **Reproducibility note:** IPPO training is seeded (Python, NumPy, PyTorch, RLlib, SUMO) but
+  not bitwise reproducible: two runs with the same config and seed (`ippo_queue_maxred` seed 0
+  in D41 and `ippo_local` seed 0 here) give episode returns that differ from the second
+  iteration (-4,205 vs -4,197) and end at 10.8 vs 10.1 s mean waiting on corridor medium.
+  Several environment runners and multithreaded CPU arithmetic make the sample order and float
+  sums vary between runs. The difference is smaller than the spread between seeds, which is why
+  results are reported as mean and confidence interval over seeds rather than single runs.
+  Evaluation of a given checkpoint is deterministic.
+
+### D44 — 2026-11-06 — Phase 6 results: coordination does not beat independent IPPO here
+- **Result:** 3 seeds, 300k steps, held-out routes, all runs complete (`analysis/coordination.py`).
+  Mean waiting (s), independent / neighbourhood / global / neighbour observation:
+  corridor medium 10.5 / 10.4 / 16.1 / 11.0; corridor high 14.5 / 15.2 / 21.8 / 14.9; corridor
+  peak 14.1 / 14.0 / 21.7 / 14.3; grid3x3 medium 19.9 / 19.4 / 41.6 / 18.9; grid3x3 high
+  31.8 / 32.9 / 60.7 / 30.7; grid3x3 peak 31.9 / 32.1 / 61.9 / 31.6. Throughput is identical in
+  each row of the protocol, so no variant gains by keeping vehicles out.
+- **Reading:** by the D43 rule no variant improves on independent IPPO. Neighbourhood reward and
+  neighbour observation are not significantly different (p > 0.1 everywhere). Global reward is
+  significantly worse in every case (+50 % to +109 %, p < 0.02): a shared signal hides each
+  agent's own contribution. Three seeds detect only large effects, so small gains from the
+  neighbour observation (-1 to -5 % on grid3x3) cannot be excluded.
+- **Protocol note:** the last 6 runs (seed 2) ran two at a time after the machine went to 12 GB,
+  each at about 70 % of its solo speed. Their `wall_time_s` is inflated, as is that of every run
+  of D48, so training times are indicative only. It does not affect the learned policies beyond
+  the run-to-run variation described in D43.
+
+### D45 — 2026-11-06 — CTDE methods (Phase 7)
+- **Decision:** MAPPO (`agents/mappo.py`, RLlib) has IPPO's actor and hyperparameters, a critic
+  that sees an agent-specific global state (own observation plus every intersection's compressed
+  message) and the global reward, which makes it comparable with `ippo_global`. QMIX and MADDPG
+  are in-house (D2), with a shared agent network, 300k steps as for IPPO and a replay of 100k
+  joint transitions. MADDPG uses the phase-duration action and trains 4 agents per gradient step.
+- **Reason:** same budget and same network sizes keep the comparison fair. The compressed state
+  holds MAPPO's batch memory on grid5x5 within this machine's limits; the 4-agent subset keeps
+  MADDPG's update cost from growing with the square of the number of agents.
+- **Impact:** QMIX and MADDPG have their own hyperparameters (lr, exploration, reward scale 0.1),
+  in `configs/algorithms/`; these were not tuned by search.
+
+### D46 — 2026-11-06 — Federated extension (Phase 9)
+- **Decision:** one PPO policy per traffic light with IPPO's hyperparameters. Every `round_every`
+  iterations clients send only parameters; the server returns their sample-weighted mean
+  (FedAvg). Optimizer states stay local, and the last step of a run is an aggregation, so a run
+  ends with one global model. `round_every: null` is the no-sharing reference. Clients and
+  server run in one process, but exchange only parameters, through `FederatedClient`.
+- **Reason:** isolates the effect of sharing parameters rather than trajectories (IPPO's parameter
+  sharing), with an explicit client/server boundary. Bytes up and down are counted by the server.
+- **Impact:** comparison with `ippo_local` as the parameter-sharing reference. Optional DP-FedAvg
+  (clipping and noise) is implemented and unit-tested.
+
+### D47 — 2026-11-06 — Full-matrix configs kept, not run
+- **Decision:** `matrix_ray.yaml`, `matrix_light.yaml`, `federated.yaml` and
+  `ablation_penalty.yaml` describe the complete protocol (5 seeds, all methods on all networks).
+- **Impact:** the study actually run is the reduced one of D48. These files remain so that the
+  complete protocol can be run later; the reward and observation ablations are the IPPO variants
+  of the matrix.
+
+### D48 — 2026-11-06 — Study reduced to meet the delivery deadline
+- **Decision:** the team must deliver on 2026-11-07. The estimated 4-5 days of the full matrix
+  (D47) are replaced by `configs/experiments/final_matrix.yaml`: priority tiers, two trainings at
+  a time, no job started after 2026-11-07 16:00. **Learned methods have 3 seeds, not the 5 of the
+  protocol**; baselines keep 5 (10 on LuST).
+- **Order:** (1) single, corridor, grid3x3 with IPPO variants, centralized PPO, MAPPO, QMIX,
+  MADDPG; (2) `ippo_local` on LuST and grid5x5; (3) federated corridor, no sharing and
+  `round_every` = 5; (4) `ippo_extended` on LuST and grid5x5; (5) `round_every` = 1 and 20;
+  (6) seeds 3-4 for `ippo_local` and `ippo_extended` on corridor and grid3x3.
+- **Not run:** CTDE and `ippo_neighborhood`/`ippo_global` on grid5x5 and LuST; federated on
+  grid3x3; the differential-privacy study; the switch-penalty ablation. `ippo_extended` was chosen
+  for tier 4 because it is the explicit coordination scheme and has the lowest mean waiting on
+  grid3x3 medium and high (not significantly, D44).
+- **Impact:** wider confidence intervals and less power than the protocol: a "not significantly
+  different" with 3 seeds is weak evidence of equivalence. Every table shows its `n`; the report
+  states this limit. Jobs that did not start before the stop time are listed in `docs/results.md`.
+
+### D49 — 2026-11-07 — RLlib sampling timeout on large networks
+- **Problem:** `ippo_local` seed 1 on grid5x5 ran 3.5 h with 0 environment steps. A rollout of 683
+  steps takes about 90 s on 25 intersections with two trainings sharing the CPU, above RLlib's
+  default `sample_timeout_s` of 60 s. Each iteration then returned no samples while requests
+  piled up on the runners.
+- **Decision:** `sample_timeout_s` = 1800 for all RLlib trainers; the run was deleted and restarted.
+  It is a technical limit with no effect on the learning algorithm.
+- **Impact:** grid5x5 `ippo_local` seeds 0 and 2 were kept: they reached the full budget, but their
+  first iterations hit the timeout, so a few early updates used smaller batches than 4096
+  (76-77 logged iterations instead of 74). Their wall times include those timeouts.
+
+### D50 — 2026-11-07 — What the reduced study actually ran
+- **Outcome:** all six tiers of D48 completed with no failed job. The sweep stopped starting jobs
+  at 16:00; the seed-4 jobs of tier 6 that had not started were run afterwards (finished 17:44),
+  so `ippo_local` and `ippo_extended` have 5 seeds on corridor and grid3x3. Baselines were also
+  evaluated on the `saturated` profile of every scenario, so the robustness table covers it.
+- **Impact:** every job listed in `final_matrix.yaml` has results; the combinations that were not
+  run are those listed under "Not run" in D48. Results are reported in `docs/results.md`.

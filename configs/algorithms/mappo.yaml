@@ -1,0 +1,7 @@
+# MAPPO: IPPO's actor and PPO hyperparameters, with a centralized critic (D1, D45).
+defaults: [algorithms/ippo.yaml]
+algorithm:
+  name: mappo
+env:
+  reward:
+    type: global               # cooperative team reward, comparable to ippo_global (D45)
