@@ -733,3 +733,14 @@ Each entry states the decision, the reason, and its impact on the code and the r
 - **Impact:** wider confidence intervals and less power than the protocol: a "not significantly
   different" with 3 seeds is weak evidence of equivalence. Every table shows its `n`; the report
   states this limit. Jobs that did not start before the stop time are listed in `docs/results.md`.
+
+### D49 — 2026-11-07 — RLlib sampling timeout on large networks
+- **Problem:** `ippo_local` seed 1 on grid5x5 ran 3.5 h with 0 environment steps. A rollout of 683
+  steps takes about 90 s on 25 intersections with two trainings sharing the CPU, above RLlib's
+  default `sample_timeout_s` of 60 s. Each iteration then returned no samples while requests
+  piled up on the runners.
+- **Decision:** `sample_timeout_s` = 1800 for all RLlib trainers; the run was deleted and restarted.
+  It is a technical limit with no effect on the learning algorithm.
+- **Impact:** grid5x5 `ippo_local` seeds 0 and 2 were kept: they reached the full budget, but their
+  first iterations hit the timeout, so a few early updates used smaller batches than 4096
+  (76-77 logged iterations instead of 74). Their wall times include those timeouts.

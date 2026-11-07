@@ -39,6 +39,7 @@ from trafficmarl.utils.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
+SAMPLE_TIMEOUT_S = 1800.0  # s; generous: it only guards against a dead runner
 POLICY_ID = "shared"
 ENV_NAME = "trafficmarl"
 
@@ -140,6 +141,9 @@ def build_algorithm_config(
             num_envs_per_env_runner=1,
             rollout_fragment_length="auto",
             num_cpus_per_env_runner=1,
+            # A rollout on grid5x5 takes over RLlib's default 60 s when lanes share the CPU.
+            # Timed-out requests pile up on the runners and sampling can stop for good (D49).
+            sample_timeout_s=SAMPLE_TIMEOUT_S,
         )
         .learners(
             num_learners=0,
