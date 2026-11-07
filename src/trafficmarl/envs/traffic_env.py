@@ -170,7 +170,7 @@ class TrafficSignalEnv(ParallelEnv):
         self.sumo_env = CountingSumoEnvironment(
             net_file=net_file,
             route_file=str(self.route_files[0]),
-            use_gui=False,
+            use_gui=bool(sim_cfg.get("gui", False)),  # demo only (experiments/demo.py)
             num_seconds=self.time_limit,
             delta_time=self.delta_time,
             yellow_time=yellow_time,
